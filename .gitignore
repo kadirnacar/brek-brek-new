@@ -57,3 +57,5 @@ buck-out/
 
 # CocoaPods
 /ios/Pods/
+brekbrek_app/yarn.lock
+brekbrek_app/package-lock.json
