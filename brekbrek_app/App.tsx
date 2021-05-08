@@ -7,100 +7,29 @@
  *
  * @format
  */
-
-import React from 'react';
-import {
-  TouchableOpacity,
-  NativeModules,
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-  ViewStyle,
-} from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import React, { Component } from 'react';
+import 'react-native-gesture-handler';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
+import { HomeScreenComp } from './src/Screens/Home';
 
-import Icon from 'react-native-vector-icons/FontAwesome5';
-
-const { HelperModule } = NativeModules;
-const Section: React.FC<{
-  title: string;
-}> = ({ children, title }) => {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-            color: isDarkMode ? Colors.white : Colors.black,
-            padding: 10,
-          },
-        ]}>
-        {title}
-      </Text>
-    </View>
-  );
-};
-
-const App = () => {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle: ViewStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-    flex: 1,
-  };
-
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <Section title="BrekBrek"></Section>
-      <View
-        style={{
-          flex: 1,
-          padding: 10,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
-        <TouchableOpacity
-          onPress={() => {
-            console.log(HelperModule.getDeviceId());
-          }}
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-            height: 100,
-            width: 100,
-            borderRadius: 60,
-            alignContent: 'center',
-            alignItems: 'center',
-            alignSelf: 'center',
-            justifyContent: 'center',
+const Stack = createStackNavigator();
+export default class App extends Component<any, any> {
+  render() {
+    return (
+      <NavigationContainer>
+        <Stack.Navigator
+          headerMode="screen"
+          mode="modal"
+          screenOptions={{
+            title: 'BrekBrek',
+            headerStyle: { backgroundColor: Colors.black },
+            headerTitleStyle: { color: Colors.white },
           }}>
-          <Icon name="microphone" size={60} color={isDarkMode ? Colors.white : Colors.black} />
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
-  );
-};
-
-const styles = StyleSheet.create({
-  sectionContainer: {},
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
-
-export default App;
+          <Stack.Screen name="Home" component={HomeScreenComp} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    );
+  }
+}
