@@ -15,7 +15,7 @@ public class Player {
     private static final int NUM_CHANNELS = 1;
     private static int minBufSize;
     private static boolean isPlaying;
-    //private static SpeexDecoder speexDecoder;
+    // private static SpeexDecoder speexDecoder;
 
     public static void init() {
         isPlaying = false;
@@ -82,11 +82,11 @@ public class Player {
                     }
                     i++;
                 } else {
-//                    try {
-//                        Thread.sleep(100);
-//                    } catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
+                    // try {
+                    // Thread.sleep(100);
+                    // } catch (InterruptedException e) {
+                    // e.printStackTrace();
+                    // }
                 }
             }
         }

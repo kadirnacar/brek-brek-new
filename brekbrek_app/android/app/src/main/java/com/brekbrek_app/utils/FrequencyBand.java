@@ -1,14 +1,10 @@
 package com.brekbrek_app.utils;
 
 /**
-* Created by IntelliJ IDEA.
-* User: thoth
-* Date: 9/12/12
-* Time: 5:51 PM
-* To change this template use File | Settings | File Templates.
-*/
-public enum FrequencyBand
-{
+ * Created by IntelliJ IDEA. User: thoth Date: 9/12/12 Time: 5:51 PM To change
+ * this template use File | Settings | File Templates.
+ */
+public enum FrequencyBand {
     /**
      * 8 KHz sample rate
      */
@@ -23,9 +19,8 @@ public enum FrequencyBand
     ULTRA_WIDE_BAND(2);
 
     public final int code;
-    
-    FrequencyBand(int code)
-    {
+
+    FrequencyBand(int code) {
         this.code = code;
     }
 }

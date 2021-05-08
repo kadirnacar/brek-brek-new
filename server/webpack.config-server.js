@@ -4,14 +4,14 @@ const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 const nodeExternals = require('webpack-node-externals');
 module.exports = {
   entry: {
-    server: ['./server/index.ts'],
+    server: ['./src/index.ts'],
   },
   watch: true,
   target: 'node',
   output: {
     path: path.resolve(__dirname, 'dist'),
     publicPath: '/',
-    filename: 'server/[name].js',
+    filename: '[name].js',
   },
   mode: 'development',
   module: {
@@ -20,7 +20,7 @@ module.exports = {
         test: /\.tsx?$/,
         use: 'ts-loader',
         exclude: /node_modules/,
-        include: /server/,
+        include: /src/,
       },
     ],
   },

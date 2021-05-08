@@ -19,7 +19,7 @@ export class HomeScreenComp extends Component<any, any> {
       isDarkMode: true,
     };
   }
-  
+
   componentDidMount() {
     DeviceEventEmitter.addListener('getMessage', (event) => {
       console.log('MyCustomEvent -->', event);

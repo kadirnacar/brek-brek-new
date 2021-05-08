@@ -5,16 +5,18 @@ public class OpusDecoder {
     private long address;
 
     private native int nativeInitDecoder(int samplingRate, int numberOfChannels);
+
     private native int nativeDecodeShorts(byte[] in, short[] out, int frames);
+
     private native int nativeDecodeBytes(byte[] in, byte[] out, int frames);
+
     private native boolean nativeReleaseDecoder();
 
     static {
         System.loadLibrary("brekbrek_app");
     }
 
-    public void init(@Annotations.SamplingRate int sampleRate,
-                     @Annotations.NumberOfChannels int channels) {
+    public void init(@Annotations.SamplingRate int sampleRate, @Annotations.NumberOfChannels int channels) {
         OpusError.throwIfError(this.nativeInitDecoder(sampleRate, channels));
     }
 

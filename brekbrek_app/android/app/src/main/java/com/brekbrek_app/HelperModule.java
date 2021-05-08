@@ -16,6 +16,7 @@ public class HelperModule extends ReactContextBaseJavaModule {
         super(context);
         HelperModule.context = context;
     }
+
     VolumeKeyController mVolumeKeyController;
 
     public static ReactApplicationContext context;
@@ -36,12 +37,10 @@ public class HelperModule extends ReactContextBaseJavaModule {
         return deviceId;
     }
 
-
     public static void callScript(String msg, @Nullable byte[] data, @Nullable int size) {
         WritableMap payload = Arguments.createMap();
         // Put data to map
         payload.putString("message", msg);
-        context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                .emit("getMessage", payload);
+        context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("getMessage", payload);
     }
 }
