@@ -8,13 +8,14 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
-import android.os.Build;
 import android.os.IBinder;
-
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
+import com.brekbrek_app.utils.Recorder;
 import com.brekbrek_app.utils.VolumeKeyController;
+
+import java.util.HashMap;
 
 public class BackgroundCallerService extends Service {
 
@@ -46,7 +47,7 @@ public class BackgroundCallerService extends Service {
 
         Intent intent = new Intent(this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         this.notificationBuilder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
                 .setContentTitle("BrekBrek")
@@ -73,12 +74,24 @@ public class BackgroundCallerService extends Service {
             this.notification = this.notificationBuilder.build();
             startForeground(1, this.notification);
         }
+
+        HashMap param = new HashMap();
+        param.put("type", "service");
+        param.put("status", 1);
+        HelperModule.callScript(param);
         return START_STICKY;
     }
+
 
     @Override
     public void onDestroy() {
         this.mVolumeKeyController.destroy();
+        Recorder.stop();
+
+        HashMap param = new HashMap();
+        param.put("type", "service");
+        param.put("status", 0);
+        HelperModule.callScript(param);
         super.onDestroy();
     }
 

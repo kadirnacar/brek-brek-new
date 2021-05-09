@@ -3,6 +3,8 @@ package com.brekbrek_app;
 import android.app.Application;
 import android.content.Context;
 
+import androidx.annotation.Nullable;
+
 import com.brekbrek_app.utils.Player;
 import com.brekbrek_app.utils.Recorder;
 import com.facebook.react.PackageList;
@@ -10,6 +12,7 @@ import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
+import com.facebook.react.bridge.JSIModulePackage;
 import com.facebook.soloader.SoLoader;
 
 import java.lang.reflect.InvocationTargetException;

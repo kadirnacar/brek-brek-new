@@ -1,5 +1,6 @@
 package com.brekbrek_app;
 
+import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
@@ -7,18 +8,15 @@ import android.os.Build;
 import android.provider.Settings;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 
-import com.brekbrek_app.utils.Player;
 import com.brekbrek_app.utils.Recorder;
-import com.brekbrek_app.utils.VolumeKeyController;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.modules.core.DeviceEventManagerModule;
+import com.facebook.react.bridge.WritableNativeMap;
+
+import java.util.HashMap;
 
 public class HelperModule extends ReactContextBaseJavaModule {
     HelperModule(ReactApplicationContext context) {
@@ -27,6 +25,7 @@ public class HelperModule extends ReactContextBaseJavaModule {
     }
 
     public static ReactApplicationContext context;
+    private static JavaJsModule jsModule;
     Intent mServiceIntent;
     private BackgroundCallerService mBackgroundCallerService;
 
@@ -36,18 +35,18 @@ public class HelperModule extends ReactContextBaseJavaModule {
         return "HelperModule";
     }
 
+    @SuppressLint("HardwareIds")
     @ReactMethod(isBlockingSynchronousMethod = true)
     public String getDeviceId() {
-        String deviceId = Settings.Secure.getString(getReactApplicationContext().getContentResolver(),
+        return Settings.Secure.getString(getReactApplicationContext().getContentResolver(),
                 Settings.Secure.ANDROID_ID);
-        return deviceId;
     }
 
     @ReactMethod(isBlockingSynchronousMethod = true)
     public String getServiceStatus() {
         String status = "stopped";
         if (this.mBackgroundCallerService != null) {
-            if (isMyServiceRunning(mBackgroundCallerService.getClass()) == true) {
+            if (isMyServiceRunning(mBackgroundCallerService.getClass())) {
                 status = "running";
             } else {
                 status = "stopped";
@@ -78,7 +77,6 @@ public class HelperModule extends ReactContextBaseJavaModule {
                 HelperModule.context.startService(mServiceIntent);
             }
         }
-        callScript("start Service", null, 0);
     }
 
     private boolean isMyServiceRunning(Class<?> serviceClass) {
@@ -94,15 +92,19 @@ public class HelperModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void stopService() {
         if (mServiceIntent != null) {
+            Recorder.stop();
             HelperModule.context.stopService(mServiceIntent);
         }
-        callScript("stop Service", null, 0);
     }
 
-    public static void callScript(String msg, @Nullable byte[] data, @Nullable int size) {
-        WritableMap payload = Arguments.createMap();
-        // Put data to map
-        payload.putString("message", msg);
-        context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("getMessage", payload);
+    public static void callScript(HashMap msg) {
+        WritableNativeMap payload = Arguments.makeNativeMap(msg);
+        if (jsModule == null) {
+            jsModule = HelperModule.context.getJSModule(JavaJsModule.class);
+        }
+        jsModule.callScript(payload);
+        payload = null;
+        msg = null;
+
     }
 }

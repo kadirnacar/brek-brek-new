@@ -62,3 +62,4 @@ buck-out/
 /ios/Pods/
 brekbrek_app/yarn.lock
 brekbrek_app/package-lock.json
+brekbrek_app/android/java_pid66126.hprof

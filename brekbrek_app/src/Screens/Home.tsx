@@ -1,12 +1,5 @@
 import React, { Component } from 'react';
-import {
-  NativeModules,
-  SafeAreaView,
-  TouchableOpacity,
-  View,
-  ViewStyle,
-  DeviceEventEmitter,
-} from 'react-native';
+import { NativeModules, SafeAreaView, TouchableOpacity, View, ViewStyle } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 
@@ -20,15 +13,18 @@ export class HomeScreenComp extends Component<any, any> {
       service: false,
       record: false,
     };
-    DeviceEventEmitter.addListener('getMessage', (event) => {
-      console.log('service message', event.message);
-    });
+    console.log('constructor');
+  }
+
+  componentWillUnmount() {
+    console.log('unmount');
   }
 
   componentDidMount() {
+    console.log('mount');
     const status = HelperModule.getServiceStatus();
-    if (status == 'stopped') {
-      HelperModule.startService('kanal 1');
+    if (status == 'running') {
+      // HelperModule.startService('kanal 1');
       this.setState({ service: true });
     }
   }
@@ -49,18 +45,17 @@ export class HomeScreenComp extends Component<any, any> {
           }}>
           <TouchableOpacity
             onPress={() => {
-              if (this.state.record) {
-                HelperModule.stopRecorder();
-                this.setState({ record: false });
+              if (this.state.service) {
+                HelperModule.stopService();
+                this.setState({ service: false });
               } else {
-                HelperModule.startRecorder();
-                this.setState({ record: true });
+                HelperModule.startService('kanal 1');
+                this.setState({ service: true });
               }
             }}
             style={{
               backgroundColor: this.state.isDarkMode ? Colors.black : Colors.white,
               borderWidth: 2,
-              borderColor: this.state.record ? Colors.white : Colors.black,
               height: 100,
               width: 100,
               borderRadius: 60,
@@ -70,11 +65,40 @@ export class HomeScreenComp extends Component<any, any> {
               justifyContent: 'center',
             }}>
             <Icon
-              name="microphone"
+              name={this.state.service ? 'toggle-on' : 'toggle-off'}
               size={60}
               color={this.state.isDarkMode ? Colors.white : Colors.black}
             />
           </TouchableOpacity>
+          {this.state.service ? (
+            <TouchableOpacity
+              onPressIn={() => {
+                HelperModule.startRecorder();
+                this.setState({ record: true });
+              }}
+              onPressOut={() => {
+                HelperModule.stopRecorder();
+                this.setState({ record: false });
+              }}
+              style={{
+                backgroundColor: this.state.isDarkMode ? Colors.black : Colors.white,
+                borderWidth: 2,
+                borderColor: this.state.record ? Colors.white : Colors.black,
+                height: 100,
+                width: 100,
+                borderRadius: 60,
+                alignContent: 'center',
+                alignItems: 'center',
+                alignSelf: 'center',
+                justifyContent: 'center',
+              }}>
+              <Icon
+                name="microphone"
+                size={60}
+                color={this.state.isDarkMode ? Colors.white : Colors.black}
+              />
+            </TouchableOpacity>
+          ) : null}
         </View>
       </SafeAreaView>
     );

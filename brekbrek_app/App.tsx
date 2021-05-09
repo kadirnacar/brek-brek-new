@@ -11,8 +11,14 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import React, { Component } from 'react';
 import 'react-native-gesture-handler';
+import BatchedBridge from 'react-native/Libraries/BatchedBridge/BatchedBridge';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { HomeScreenComp } from './src/Screens/Home';
+import JavaJsModule from './src/Utils/JavaJsModule';
+
+if (!BatchedBridge.getCallableModule('JavaJsModule')) {
+  BatchedBridge.registerCallableModule('JavaJsModule', JavaJsModule);
+}
 
 const Stack = createStackNavigator();
 export default class App extends Component<any, any> {

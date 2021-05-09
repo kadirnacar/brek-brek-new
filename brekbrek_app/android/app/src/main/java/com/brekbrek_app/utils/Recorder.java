@@ -5,7 +5,11 @@ import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.media.audiofx.AcousticEchoCanceler;
 import android.media.audiofx.NoiseSuppressor;
+
 import com.brekbrek_app.HelperModule;
+
+import java.util.Arrays;
+import java.util.HashMap;
 
 public class Recorder {
     private static AudioRecord audioRecord;
@@ -52,6 +56,11 @@ public class Recorder {
         recordingThread = new Thread(Recorder::recording, "RecordingThread");
         recordingThread.start();
         isRecording = true;
+
+        HashMap param = new HashMap();
+        param.put("type", "record");
+        param.put("status", 1);
+        HelperModule.callScript(param);
     }
 
     public static void stop() {
@@ -62,7 +71,15 @@ public class Recorder {
             recordingThread.interrupt();
         }
         recordingThread = null;
+
+        if(isRecording) {
+            HashMap param = new HashMap();
+            param.put("type", "record");
+            param.put("status", 0);
+            HelperModule.callScript(param);
+        }
         isRecording = false;
+        System.gc();
     }
 
     private static void recording() {
@@ -76,7 +93,9 @@ public class Recorder {
             while (isRecording && to_read > 0 && audioRecord != null) {
                 int read = audioRecord.read(inBuf, offset, to_read);
                 if (read < 0) {
-                    HelperModule.callScript("recorder.read() returned error " + read, null, 0);
+                    HashMap param = new HashMap();
+                    param.put("error", "recorder.read() returned error " + read);
+                    HelperModule.callScript(param);
                     break;
                 }
                 to_read -= read;
@@ -87,10 +106,17 @@ public class Recorder {
                 try {
                     int encoded = opusEncoder.encode(inBuf, FRAME_SIZE, encBuf);
                     if (encoded > 0) {
-                        HelperModule.callScript("data", encBuf, encoded);
+                        HashMap param = new HashMap();
+                        byte[] data = Arrays.copyOf(encBuf, encoded);
+                        param.put("data", data);
+                        HelperModule.callScript(param);
+                        param.clear();
+                        param = null;
+                        data = null;
                     }
                 } catch (Exception ex) {
-
+                } catch (Throwable throwable) {
+                    throwable.printStackTrace();
                 }
             }
         }
