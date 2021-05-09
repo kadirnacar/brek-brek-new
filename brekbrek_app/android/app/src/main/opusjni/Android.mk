@@ -115,8 +115,8 @@ endif
 
 LOCAL_SRC_FILES := \
 	$(patsubst %,$(LOCAL_PATH)/opus/%,$(SILK_SOURCES) $(CELT_SOURCES) $(OPUS_SOURCES)) \
-    com_brekbrek_app_utils_OpusEncoder.c \
-    com_brekbrek_app_utils_OpusDecoder.c
+    com_brekbrek_1app_utils_OpusEncoder.c \
+    com_brekbrek_1app_utils_OpusDecoder.c
 
 all:
 	echo $(LOCAL_SRC_FILES)

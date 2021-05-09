@@ -18,17 +18,19 @@ export class HomeScreenComp extends Component<any, any> {
     this.state = {
       isDarkMode: true,
       service: false,
+      record: false,
     };
+    DeviceEventEmitter.addListener('getMessage', (event) => {
+      console.log('service message', event.message);
+    });
   }
 
   componentDidMount() {
     const status = HelperModule.getServiceStatus();
-    if (status == 'running') {
+    if (status == 'stopped') {
+      HelperModule.startService('kanal 1');
       this.setState({ service: true });
     }
-    DeviceEventEmitter.addListener('getMessage', (event) => {
-      console.log('service message', event.message);
-    });
   }
 
   render() {
@@ -47,18 +49,18 @@ export class HomeScreenComp extends Component<any, any> {
           }}>
           <TouchableOpacity
             onPress={() => {
-              if (this.state.service) {
-                HelperModule.stopService();
-                this.setState({ service: false });
+              if (this.state.record) {
+                HelperModule.stopRecorder();
+                this.setState({ record: false });
               } else {
-                HelperModule.startService('kanal 1');
-                this.setState({ service: true });
+                HelperModule.startRecorder();
+                this.setState({ record: true });
               }
             }}
             style={{
               backgroundColor: this.state.isDarkMode ? Colors.black : Colors.white,
               borderWidth: 2,
-              borderColor: this.state.service ? Colors.Red : Colors.black,
+              borderColor: this.state.record ? Colors.white : Colors.black,
               height: 100,
               width: 100,
               borderRadius: 60,

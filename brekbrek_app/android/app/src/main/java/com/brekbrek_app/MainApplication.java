@@ -3,6 +3,8 @@ package com.brekbrek_app;
 import android.app.Application;
 import android.content.Context;
 
+import com.brekbrek_app.utils.Player;
+import com.brekbrek_app.utils.Recorder;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactInstanceManager;

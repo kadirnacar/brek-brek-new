@@ -65,14 +65,14 @@ public class BackgroundCallerService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
+        this.mVolumeKeyController = new VolumeKeyController(getApplicationContext());
+        this.mVolumeKeyController.setActive(true);
         String channelName = intent.getExtras().getString("ChannelName");
         if(!channelName.isEmpty()) {
             this.notificationBuilder.setContentText(channelName);
             this.notification = this.notificationBuilder.build();
             startForeground(1, this.notification);
         }
-        this.mVolumeKeyController = new VolumeKeyController(getApplicationContext());
-        this.mVolumeKeyController.setActive(true);
         return START_STICKY;
     }
 
