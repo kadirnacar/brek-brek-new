@@ -7,7 +7,7 @@ export class SocketService {
   static wsServer: ws.Server;
   static clients: { [id: string]: { socket: ws; type?: string } } = {};
 
-  public static async init(server: http.Server | https.Server) {
+  public static init(server: http.Server | https.Server) {
     this.wsServer = new ws.Server({
       server: server,
     });
@@ -19,15 +19,23 @@ export class SocketService {
       new URL(request.url, `http://${request.headers.host}`).searchParams.entries()
     );
     const clientId: any = params.get('clientId');
+
+    if (!clientId) {
+      socket.terminate();
+      return;
+    }
+
+    socket.on('message', SocketService.onMessage.bind(socket));
+    socket.on('close', SocketService.onClose.bind(socket, clientId));
+    socket.on('error', SocketService.onClose.bind(socket, clientId));
+
     SocketService.clients[clientId] = { socket: socket };
 
     params.forEach((val: any, key: any) => {
       SocketService.clients[clientId][key] = val;
     });
 
-    SocketService.clients[clientId].socket.send(
-      JSON.stringify({ type: 'connection', clientId, success: true })
-    );
+    SocketService.sendTo(clientId, { type: 'connection', clientId, success: true });
 
     SocketService.sendAll({
       type: 'clients',
@@ -36,13 +44,19 @@ export class SocketService {
         clientId: x,
       })),
     });
+  }
 
-    SocketService.clients[clientId].socket.onmessage = (message: ws.MessageEvent) => {
-      const data = JSON.parse(message.data.toString());
-      SocketService.clients[data.to].socket.send(message.data);
-    };
+  private static onMessage(message: ws.Data) {
+    try {
+      const data = JSON.parse(message.toString());
+      SocketService.sendTo(data.to, message);
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
-    SocketService.clients[clientId].socket.on('close', (code, reason) => {
+  private static onClose(clientId, code, reason) {
+    if (clientId) {
       delete SocketService.clients[clientId];
       SocketService.sendAll({
         type: 'clients',
@@ -51,14 +65,30 @@ export class SocketService {
           clientId: x,
         })),
       });
-    });
+    }
+  }
+
+  public static sendTo(clientId: string, data: any) {
+    if (
+      clientId &&
+      SocketService.clients[clientId] &&
+      SocketService.clients[clientId].socket.readyState === ws.OPEN
+    ) {
+      SocketService.clients[clientId].socket.send(JSON.stringify(data));
+    } else if (
+      clientId &&
+      SocketService.clients[clientId] &&
+      SocketService.clients[clientId].socket.readyState !== ws.OPEN
+    ) {
+      delete SocketService.clients[clientId];
+    }
   }
 
   public static sendAll(data: any, exclude: string[] = []) {
     Object.keys(SocketService.clients)
       .filter((x) => exclude.indexOf(x) == -1)
       .forEach((x) => {
-        SocketService.clients[x].socket.send(JSON.stringify(data));
+        SocketService.sendTo(x, data);
       });
   }
 }

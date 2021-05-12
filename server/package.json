@@ -1,8 +1,8 @@
 {
-  "name": "basic-webrtc",
+  "name": "brek-brek-server",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/server/index.js",
+  "main": "./dist/server.js",
   "scripts": {
     "build-server": "webpack --config webpack.config.js",
     "run-server": "nodemon --inspect ./dist/server.js",
