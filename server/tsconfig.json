@@ -8,7 +8,17 @@
     "checkJs": false,
     "skipLibCheck": true,
     "lib": ["ES2019", "DOM"],
-    "types": ["node"]
+    "types": ["node"],
+    "paths": {
+      "@connectionManager": [ "./src/connectionManager" ],
+      "@models": [ "./src/models" ],
+      "@routes": [ "./src/routes" ],
+      "@services": [ "./src/services" ],
+      "@repository": [ "./src/repository" ],
+      "@utils": [ "./src/utils.ts" ],
+      "@tools": [ "./src/tools" ],
+      "@database": [ "./src/database/LowDb" ]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "**/*.spec.ts"]

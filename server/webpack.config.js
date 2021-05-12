@@ -26,6 +26,17 @@ module.exports = {
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
+    alias: {
+      '@connectionManager': path.resolve(__dirname, 'src/connectionManager'),
+      '@dbReader': path.resolve(__dirname, 'src/dbReader'),
+      '@models': path.resolve(__dirname, 'src/models'),
+      '@routes': path.resolve(__dirname, 'src/routes'),
+      '@repository': path.resolve(__dirname, 'src/repository'),
+      '@services': path.resolve(__dirname, 'src/services'),
+      '@utils': path.resolve(__dirname, 'src/utils'),
+      '@tools': path.resolve(__dirname, 'src/tools'),
+      '@database': path.resolve(__dirname, 'src/database/LowDb'),
+    },
     fallback: {
       fs: false,
       tls: false,

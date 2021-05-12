@@ -1,19 +1,23 @@
-import Utils from './utils';
-import * as lowdb from 'lowdb';
-import * as FileSync from 'lowdb/adapters/FileSync';
-import * as path from 'path';
+import Utils from "@utils";
+import * as lowdb from "lowdb";
+import * as FileSync from "lowdb/adapters/FileSync";
+import * as path from "path";
 
 const serializer = {
   serialize: (array) => {
     return JSON.stringify(array, (key, value) => {
-      if (value !== null && value !== '' && value !== undefined) return value;
+      if (value !== null && value !== "" && value !== undefined) return value;
     });
   },
   deserialize: (string) => JSON.parse(string),
 };
-
-export default class DatabaseService {
-  constructor(entityName: string, parentEntityName?: string[], multi: boolean = true, defaultSchema: any = {}) {
+export default class BaseDb {
+  constructor(
+    entityName: string,
+    parentEntityName?: string[],
+    multi: boolean = true,
+    defaultSchema: any = {}
+  ) {
     this.entityName = entityName;
     this.parentEntityName = parentEntityName;
     this.multi = multi;
@@ -31,9 +35,12 @@ export default class DatabaseService {
   private db: any = {};
 
   private init() {
-    const filePath = path.resolve('dist', 'data', this.entityName);
+    const filePath = path.resolve("dist", "data", this.entityName);
     if (!Utils.checkFileExists(filePath)) Utils.mkDirByPathSync(filePath);
-    this.dbAdapter = new FileSync(path.resolve(filePath, 'index.json'), serializer);
+    this.dbAdapter = new FileSync(
+      path.resolve(filePath, "index.json"),
+      serializer
+    );
     this.db = lowdb(this.dbAdapter);
     if (!this.db.has(this.entityName).value()) {
       var defaultSchema = {};
@@ -47,10 +54,19 @@ export default class DatabaseService {
       return this.db.get(this.entityName);
     } else if (parentId) {
       if (!this.db[parentId]) {
-        const filePath = path.resolve('dist', 'data', this.parentEntityName.join('\\'), parentId, this.entityName);
+        const filePath = path.resolve(
+          "dist",
+          "data",
+          this.parentEntityName.join("\\"),
+          parentId,
+          this.entityName
+        );
         if (!Utils.checkFileExists(filePath)) Utils.mkDirByPathSync(filePath);
         // this.dbAdapter[parentId] = new FileAsync(path.resolve(filePath, "index.json"), serializer);
-        this.dbAdapter[parentId] = new FileSync(path.resolve(filePath, 'index.json'), serializer);
+        this.dbAdapter[parentId] = new FileSync(
+          path.resolve(filePath, "index.json"),
+          serializer
+        );
 
         this.db[parentId] = lowdb(this.dbAdapter[parentId]);
         if (!this.db[parentId].has(this.entityName).value()) {
@@ -61,10 +77,6 @@ export default class DatabaseService {
       }
       return this.db[parentId].get(this.entityName);
     }
-  }
-  public allT<T>(parentId?: string): T[] {
-    const result = this.getDb(parentId).value();
-    return result as T[];
   }
 
   public all(parentId?: string): any[] {
@@ -82,7 +94,9 @@ export default class DatabaseService {
     var db = this.getDb(parentId);
     var data = this.multi ? db.find({ id: model.id }).value() : db.value();
     if (data) {
-      this.multi ? db.find({ id: model.id }).assign(model).write() : db.assign(model).write();
+      this.multi
+        ? db.find({ id: model.id }).assign(model).write()
+        : db.assign(model).write();
     } else {
       this.multi ? db.push(model).write() : db.assign(model).write();
     }
@@ -97,7 +111,13 @@ export default class DatabaseService {
 
       if (!this.parentEntityName || this.parentEntityName.length > 0) {
         try {
-          const filePath = path.resolve('dist', 'data', this.parentEntityName.join('\\'), parentId, this.entityName);
+          const filePath = path.resolve(
+            "dist",
+            "data",
+            this.parentEntityName.join("\\"),
+            parentId,
+            this.entityName
+          );
           Utils.deleteFolderRecursive(filePath);
         } catch {}
       }

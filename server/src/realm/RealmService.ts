@@ -1,17 +1,17 @@
-import { Shader } from '../models/Shader';
+import { Models } from '@models';
 import Realm from 'realm';
 import 'reflect-metadata';
 
 export class RealmService<T> {
-  constructor(arg: { new (): T }) {
-    this.modelType = Reflect.get(arg, 'schema')?.name;
+  constructor(entityName: string) {
+    this.modelType = entityName;
     if (!RealmService.realm) {
       try {
         RealmService.realm = new Realm({
           path: 'data/database.realm',
           schemaVersion: 1,
-          schema: [Shader].map((x) => {
-            return Reflect.get(x, 'schema');
+          schema: Object.keys(Models).map((x) => {
+            return Reflect.get(Models[x], 'schema');
           }),
         });
       } catch (ex) {}
@@ -22,8 +22,8 @@ export class RealmService<T> {
   private modelType;
   getById(id: any) {
     if (RealmService.realm) {
-      const list: T = RealmService.realm.objectForPrimaryKey<T>(this.modelType, id);
-      return list;
+      const item: T = RealmService.realm.objectForPrimaryKey<T>(this.modelType, id);
+      return item;
     } else {
       return null;
     }
@@ -37,17 +37,23 @@ export class RealmService<T> {
       return null;
     }
   }
-  update(model: T, updates: T) {
-    RealmService.realm.write(() => {
-      Object.getOwnPropertyNames(updates).forEach((x) => {
-        model[x] = updates[x];
+  update(model: T, updates: Partial<T>): Promise<T> {
+    return new Promise((resolve) => {
+      RealmService.realm.write(() => {
+        Object.getOwnPropertyNames(updates).forEach((x) => {
+          model[x] = updates[x];
+        });
+        resolve(model);
       });
     });
   }
 
-  save(model: T) {
-    RealmService.realm.write(() => {
-      const d = RealmService.realm.create<T>(this.modelType, model);
+  save(model: T): Promise<T & Realm.Object> {
+    return new Promise((resolve) => {
+      RealmService.realm.write(() => {
+        const d = RealmService.realm.create<T>(this.modelType, model);
+        resolve(d);
+      });
     });
   }
   delete(model: T | Realm.Results<T> | T[]) {
