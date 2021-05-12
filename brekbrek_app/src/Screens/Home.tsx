@@ -2,8 +2,9 @@ import React, { Component } from 'react';
 import { NativeModules, SafeAreaView, TouchableOpacity, View, ViewStyle } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
+import { IHelperModule } from '../Utils/IHelperModule';
 
-const { HelperModule } = NativeModules;
+const HelperModule: IHelperModule = NativeModules.HelperModule;
 
 export class HomeScreenComp extends Component<any, any> {
   constructor(props: any) {
@@ -44,12 +45,12 @@ export class HomeScreenComp extends Component<any, any> {
             alignItems: 'center',
           }}>
           <TouchableOpacity
-            onPress={() => {
+            onPress={async () => {
               if (this.state.service) {
-                HelperModule.stopService();
+                await HelperModule.stopService();
                 this.setState({ service: false });
               } else {
-                HelperModule.startService('kanal 1');
+                await HelperModule.startService('kanal 1');
                 this.setState({ service: true });
               }
             }}
@@ -72,12 +73,12 @@ export class HomeScreenComp extends Component<any, any> {
           </TouchableOpacity>
           {this.state.service ? (
             <TouchableOpacity
-              onPressIn={() => {
-                HelperModule.startRecorder();
+              onPressIn={async () => {
+                await HelperModule.startRecorder();
                 this.setState({ record: true });
               }}
-              onPressOut={() => {
-                HelperModule.stopRecorder();
+              onPressOut={async () => {
+                await HelperModule.stopRecorder();
                 this.setState({ record: false });
               }}
               style={{

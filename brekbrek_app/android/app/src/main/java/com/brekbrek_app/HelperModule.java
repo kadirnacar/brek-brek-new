@@ -16,16 +16,22 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableNativeMap;
 
+import org.webrtc.IceCandidate;
+import org.webrtc.SessionDescription;
+
 import java.util.HashMap;
 
 public class HelperModule extends ReactContextBaseJavaModule {
     HelperModule(ReactApplicationContext context) {
         super(context);
         HelperModule.context = context;
+        HelperModule.peers = new HashMap<String, RtcClient>();
     }
 
     public static ReactApplicationContext context;
     private static JavaJsModule jsModule;
+    private static HashMap<String, RtcClient> peers;
+
     Intent mServiceIntent;
     private BackgroundCallerService mBackgroundCallerService;
 
@@ -105,6 +111,106 @@ public class HelperModule extends ReactContextBaseJavaModule {
         jsModule.callScript(payload);
         payload = null;
         msg = null;
+    }
 
+
+    @ReactMethod
+    public void createPeer(String peerId) {
+        RtcClient peer = HelperModule.peers.get(peerId);
+        if (peer == null) {
+            peer = new RtcClient(context);
+            peer.addListener(new EventListener() {
+                @Override
+                public void onCandidate(IceCandidate candidate) {
+                    HashMap param = new HashMap();
+                    param.put("type", "rtc");
+                    param.put("peerId", peerId);
+                    HashMap data = new HashMap();
+                    data.put("type", "candidate");
+                    data.put("sdpMLineIndex", candidate.sdpMLineIndex);
+                    data.put("sdpMid", candidate.sdpMid);
+                    data.put("candidate", candidate.sdp);
+                    param.put("data", data);
+                    HelperModule.callScript(param);
+                }
+
+                @Override
+                public void onAnswerCreated(SessionDescription sessionDescription) {
+
+                }
+
+                @Override
+                public void onOfferCreated(SessionDescription sessionDescription) {
+                    HashMap param = new HashMap();
+                    param.put("type", "rtc");
+                    param.put("peerId", peerId);
+                    HashMap data = new HashMap();
+                    data.put("type", String.valueOf(sessionDescription.type));
+                    data.put("description", sessionDescription.description);
+                    param.put("data", data);
+                    HelperModule.callScript(param);
+                }
+            });
+        }
+        peer.connectPeer();
+    }
+
+    @ReactMethod
+    public void createAnswer(String peerId, String type, String description) {
+        RtcClient peer = HelperModule.peers.get(peerId);
+        if (peer == null) {
+            peer = new RtcClient(context);
+            peer.addListener(new EventListener() {
+                @Override
+                public void onCandidate(IceCandidate candidate) {
+                    HashMap param = new HashMap();
+                    param.put("type", "rtc");
+                    param.put("peerId", peerId);
+                    HashMap data = new HashMap();
+                    data.put("type", "candidate");
+                    data.put("sdpMLineIndex", candidate.sdpMLineIndex);
+                    data.put("sdpMid", candidate.sdpMid);
+                    data.put("candidate", candidate.sdp);
+                    param.put("data", data);
+                    HelperModule.callScript(param);
+                }
+
+                @Override
+                public void onAnswerCreated(SessionDescription sessionDescription) {
+                    HashMap param = new HashMap();
+                    param.put("type", "rtc");
+                    param.put("peerId", peerId);
+                    HashMap data = new HashMap();
+                    data.put("type", String.valueOf(sessionDescription.type));
+                    data.put("description", sessionDescription.description);
+                    param.put("data", data);
+                    HelperModule.callScript(param);
+                }
+
+                @Override
+                public void onOfferCreated(SessionDescription sessionDescription) {
+                }
+            });
+        }
+        peer.createAnswer(type, description);
+    }
+
+    @ReactMethod
+    public void setAnswer(String peerId, String type, String description) {
+        RtcClient peer = HelperModule.peers.get(peerId);
+        if (peer != null) {
+            peer.setAnswer(type, description);
+        }
+    }
+
+    @ReactMethod
+    public void setCandidate(String peerId,
+                             int sdpMLineIndex,
+                             String sdpMid,
+                             String candidate) {
+        RtcClient peer = HelperModule.peers.get(peerId);
+        if (peer != null) {
+            peer.setCandidate(sdpMLineIndex, sdpMid, candidate);
+        }
     }
 }

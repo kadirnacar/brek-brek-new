@@ -3,7 +3,6 @@ export class RtcConnection {
 
   private socket: WebSocket;
   private socketId: string;
-  private peers: { [peerId: string]: any } = {};
 
   public onMessage: (message: any) => void;
 
@@ -42,9 +41,6 @@ export class RtcConnection {
             succCallback();
           }
           break;
-        case 'rtc':
-          await this.onRtcEvent(data);
-          break;
         default:
           if (this.onMessage) {
             this.onMessage(data);
@@ -59,30 +55,8 @@ export class RtcConnection {
     }
   }
 
-  private async onRtcEvent(data: any) {
-    switch (data.data.type) {
-      case 'iceCandidate':
-        const peerIce = this.peers[data.from];
-        if (peerIce) {
-          peerIce.addCandidate(data.data.candidate);
-        }
-        break;
-      case 'offer':
-        const newPeer = this.createPeer(data.from);
-        const answer = await newPeer.createAnswer(data.data);
-        this.socket.send(
-          JSON.stringify({ to: data.from, from: this.socketId, type: 'rtc', data: answer })
-        );
-        break;
-      case 'answer':
-        const peerAnswer = this.peers[data.from];
-        if (peerAnswer) {
-          await peerAnswer.setAnswer(data.data);
-        }
-        break;
-      default:
-        break;
-    }
+  public sendMessage(to: string, message: any) {
+    this.socket.send(JSON.stringify({ to: to, from: this.socketId, ...message }));
   }
 
   public disconnectServer(ev: any) {
@@ -90,32 +64,6 @@ export class RtcConnection {
       this.socket.close();
     }
     this.socketId = '';
-    this.peers = {};
-    console.log(ev);
-  }
-
-  private createPeer(peerId: string) {
-    const peer: any = {}; //new RtcClient();
-
-    peer.onCandidate = (ice: any) => {
-      this.socket.send(
-        JSON.stringify({
-          to: peerId,
-          from: this.socketId,
-          type: 'rtc',
-          data: { type: 'iceCandidate', candidate: ice },
-        })
-      );
-    };
-
-    this.peers[peerId] = peer;
-    return peer;
-  }
-
-  public async connectToPeer(peerId: string) {
-    this.createPeer(peerId);
-    const peer = this.peers[peerId];
-    const offer = await peer.connectPeer();
-    this.socket.send(JSON.stringify({ to: peerId, from: this.socketId, type: 'rtc', data: offer }));
+    console.log('disconnected', ev);
   }
 }

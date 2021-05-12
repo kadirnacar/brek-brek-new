@@ -1,6 +1,9 @@
 package com.brekbrek_app;
 
 import android.util.Log;
+
+import com.facebook.react.bridge.ReactApplicationContext;
+
 import org.webrtc.DataChannel;
 import org.webrtc.IceCandidate;
 import org.webrtc.MediaConstraints;
@@ -17,20 +20,30 @@ import java.util.List;
 
 interface EventListener {
     void onCandidate(IceCandidate candidate);
+
     void onOfferCreated(SessionDescription sessionDescription);
+
+    void onAnswerCreated(SessionDescription sessionDescription);
 }
 
 public class RtcClient {
-    public RtcClient() {
+    public RtcClient(ReactApplicationContext context) {
+        PeerConnectionFactory.InitializationOptions initializationOptions =
+                PeerConnectionFactory.InitializationOptions.builder(context)
+                        .createInitializationOptions();
+        PeerConnectionFactory.initialize(initializationOptions);
+        peerConnectionFactory = PeerConnectionFactory.builder().createPeerConnectionFactory();
         List<PeerConnection.IceServer> iceServers = new LinkedList<>();
         iceServers.add(PeerConnection.IceServer.builder("stun:stun.l.google.com:19302").createIceServer());
+
         peer = peerConnectionFactory.createPeerConnection(iceServers, peerObserver);
         sendChannel = peer.createDataChannel("RTCDataChannel", new DataChannel.Init());
         //sendChannel.registerObserver(localDataChannelObserver);
+
     }
 
     private List<EventListener> listeners = new ArrayList<EventListener>();
-    private PeerConnectionFactory peerConnectionFactory = PeerConnectionFactory.builder().createPeerConnectionFactory();
+    private PeerConnectionFactory peerConnectionFactory;
     private PeerConnection peer;
     private DataChannel sendChannel;
     private DataChannel receiveChannel;
@@ -42,12 +55,26 @@ public class RtcClient {
 
     public void connectPeer() {
         MediaConstraints constraints = new MediaConstraints();
-        peer.createOffer(sessionObserver, constraints);
+        peer.createOffer(offerObserver, constraints);
     }
 
-    public void createAnswer() {
+    public void createAnswer(String type, String description) {
+        SessionDescription sdp = new SessionDescription(SessionDescription.Type.fromCanonicalForm(type), description);
+        peer.setRemoteDescription(answerObserver, sdp);
         MediaConstraints constraints = new MediaConstraints();
-        peer.createAnswer(sessionObserver, constraints);
+        peer.createAnswer(answerObserver, constraints);
+    }
+
+    public void setAnswer(String type, String description) {
+        SessionDescription sdp = new SessionDescription(SessionDescription.Type.fromCanonicalForm(type), description);
+        peer.setRemoteDescription(answerObserver, sdp);
+    }
+
+    public void setCandidate(int sdpMLineIndex,
+                             String sdpMid,
+                             String candidate) {
+        IceCandidate iceCandidate = new IceCandidate(sdpMid, sdpMLineIndex, candidate);
+        peer.addIceCandidate(iceCandidate);
     }
 
     PeerConnection.Observer peerObserver = new PeerConnection.Observer() {
@@ -108,14 +135,37 @@ public class RtcClient {
 
         }
     };
-
-    SdpObserver sessionObserver = new SdpObserver() {
+    SdpObserver offerObserver = new SdpObserver() {
         @Override
         public void onCreateSuccess(SessionDescription sessionDescription) {
-            peer.setLocalDescription(sessionObserver, sessionDescription);
-//            for (EventListener l : listeners) {
-//                l.onOfferCreated(sessionDescription);
-//            }
+            peer.setLocalDescription(offerObserver, sessionDescription);
+            for (EventListener l : listeners) {
+                l.onOfferCreated(sessionDescription);
+            }
+        }
+
+        @Override
+        public void onSetSuccess() {
+
+        }
+
+        @Override
+        public void onCreateFailure(String s) {
+
+        }
+
+        @Override
+        public void onSetFailure(String s) {
+
+        }
+    };
+    SdpObserver answerObserver = new SdpObserver() {
+        @Override
+        public void onCreateSuccess(SessionDescription sessionDescription) {
+            peer.setLocalDescription(answerObserver, sessionDescription);
+            for (EventListener l : listeners) {
+                l.onAnswerCreated(sessionDescription);
+            }
         }
 
         @Override

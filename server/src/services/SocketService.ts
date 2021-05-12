@@ -49,7 +49,8 @@ export class SocketService {
   private static onMessage(message: ws.Data) {
     try {
       const data = JSON.parse(message.toString());
-      SocketService.sendTo(data.to, message);
+      console.log(data,'');
+      SocketService.sendTo(data.to, data);
     } catch (err) {
       console.error(err);
     }
