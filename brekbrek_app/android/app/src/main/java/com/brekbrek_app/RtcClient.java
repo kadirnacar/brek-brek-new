@@ -35,18 +35,13 @@ public class RtcClient {
         peerConnectionFactory = PeerConnectionFactory.builder().createPeerConnectionFactory();
         List<PeerConnection.IceServer> iceServers = new LinkedList<>();
         iceServers.add(PeerConnection.IceServer.builder("stun:stun.l.google.com:19302").createIceServer());
-
         peer = peerConnectionFactory.createPeerConnection(iceServers, peerObserver);
-        sendChannel = peer.createDataChannel("RTCDataChannel", new DataChannel.Init());
-        //sendChannel.registerObserver(localDataChannelObserver);
-
     }
 
     private List<EventListener> listeners = new ArrayList<EventListener>();
     private PeerConnectionFactory peerConnectionFactory;
     private PeerConnection peer;
-    private DataChannel sendChannel;
-    private DataChannel receiveChannel;
+    private DataChannel peerDataChannel;
     private static final String TAG = "RtcClient";
 
     public void addListener(EventListener toAdd) {
@@ -54,6 +49,8 @@ public class RtcClient {
     }
 
     public void connectPeer() {
+        peerDataChannel = peer.createDataChannel("RTCDataChannel", new DataChannel.Init());
+        peerDataChannel.registerObserver(dataChannelObserver);
         MediaConstraints constraints = new MediaConstraints();
         peer.createOffer(offerObserver, constraints);
     }
@@ -123,6 +120,8 @@ public class RtcClient {
         @Override
         public void onDataChannel(DataChannel dataChannel) {
             Log.d(TAG, "localPeerConnectionObserver onDataChannel()");
+            peerDataChannel = dataChannel;
+            peerDataChannel.registerObserver(dataChannelObserver);
         }
 
         @Override
@@ -181,6 +180,27 @@ public class RtcClient {
         @Override
         public void onSetFailure(String s) {
 
+        }
+    };
+    DataChannel.Observer dataChannelObserver = new DataChannel.Observer() {
+
+        @Override
+        public void onBufferedAmountChange(long l) {
+
+        }
+
+        @Override
+        public void onStateChange() {
+
+        }
+
+        @Override
+        public void onMessage(DataChannel.Buffer buffer) {
+            if (!buffer.binary) {
+                int limit = buffer.data.limit();
+                byte[] datas = new byte[limit];
+                buffer.data.get(datas);
+            }
         }
     };
 }
