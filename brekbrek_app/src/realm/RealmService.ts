@@ -1,20 +1,35 @@
-import { Models } from '@models';
+import { Models } from '../Models';
 import Realm from 'realm';
 import 'reflect-metadata';
+import * as RNFS from 'react-native-fs';
+import { IHelperModule } from '../Utils/IHelperModule';
+import { NativeModules } from 'react-native';
+import { decode } from 'base64-arraybuffer';
+const HelperModule: IHelperModule = NativeModules.HelperModule;
 
 export class RealmService<T> {
   constructor(entityName: keyof typeof Models) {
     this.modelType = entityName;
     if (!RealmService.realm) {
       try {
+        const deviceId = HelperModule.getDeviceId();
+        const key = decode(deviceId);
+        const keyArray = new Int8Array(key);
+        const encryptionKey = new Int8Array(new ArrayBuffer(64));
+        encryptionKey.set(keyArray);
+
         RealmService.realm = new Realm({
-          path: 'data/database.realm',
-          schemaVersion: 1,
+          path: `${RNFS.CachesDirectoryPath}/data.realm`,
+          schemaVersion: 3,
+          deleteRealmIfMigrationNeeded: __DEV__,
+          encryptionKey: __DEV__ ? undefined : encryptionKey,
           schema: Object.keys(Models).map((x) => {
             return Reflect.get(Models[x], 'schema');
           }),
         });
-      } catch (ex) {}
+      } catch (ex) {
+        throw ex;
+      }
     }
   }
 

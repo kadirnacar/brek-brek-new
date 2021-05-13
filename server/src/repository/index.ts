@@ -2,6 +2,7 @@ import LangDb from './LangDb';
 import SettingsDb from './SettingsDb';
 import { RealmService } from '../realm/RealmService';
 import { uuidv4 } from '../../tools';
+import { Models } from '@models';
 
 const LangDbManager = new LangDb();
 const SettingsDbManager = new SettingsDb();
@@ -9,7 +10,7 @@ const SettingsDbManager = new SettingsDb();
 export { LangDbManager, SettingsDbManager };
 
 export class Repository<T> {
-  constructor(entityName: string) {
+  constructor(entityName: keyof typeof Models) {
     this.realm = new RealmService(entityName);
   }
 

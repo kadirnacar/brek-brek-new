@@ -1,7 +1,8 @@
+import { Models } from '@models';
 import { Repository } from '@repository';
 
 export class BaseActions<T> {
-  constructor(entityName: string) {
+  constructor(entityName: keyof typeof Models) {
     this.repo = new Repository(entityName);
   }
 

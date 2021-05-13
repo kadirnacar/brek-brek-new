@@ -1,3 +1,4 @@
+import { Models } from '@models';
 import { Services } from '@services';
 import { Request, Response, Router } from 'express';
 import { checkJwt } from '../middlewares/checkJwt';
@@ -13,7 +14,7 @@ export class DataRouter {
 
   public async getList(req: Request, res: Response, next) {
     try {
-      var entityName = req.params.entity;
+      const entityName: any = req.params.entity;
 
       const data = await Services.Data.getList(entityName);
       res.status(200).send(data);
@@ -25,7 +26,7 @@ export class DataRouter {
   public async getById(req: Request, res: Response, next) {
     try {
       const id = req.params['id'];
-      var entityName = req.params.entity;
+      const entityName: any = req.params.entity;
 
       const data = await Services.Data.getById(entityName, parseInt(id));
       res.status(200).send(data);
@@ -37,7 +38,7 @@ export class DataRouter {
   public async deleteItem(req: Request, res: Response, next) {
     try {
       const id = req.params['id'];
-      var entity = req.params.entity;
+      const entity: any = req.params.entity;
       const data = await Services.Data.delete(entity, parseInt(id));
       res.status(200).send(data);
     } catch (err) {
@@ -47,9 +48,9 @@ export class DataRouter {
 
   public async updateItem(req: Request, res: Response, next) {
     try {
-      var body = req.body;
-      var entity = req.params.entity;
-      var item = body.item;
+      const body = req.body;
+      const entity: any = req.params.entity;
+      const item = body.item;
       const data = await Services.Data.update(entity, item.Id, item);
       res.status(200).send(data);
     } catch (err) {
@@ -59,11 +60,11 @@ export class DataRouter {
 
   public async createItem(req: Request, res: Response, next) {
     try {
-      var body = req.body;
-      var entity = req.params.entity;
+      const body = req.body;
+      const entity: any = req.params.entity;
       const userId = res.locals.jwtPayload.userId;
 
-      var item = body.item;
+      const item = body.item;
       item.UserId = userId;
       const data = await Services.Data.save(entity, item);
       res.status(200).send(data);

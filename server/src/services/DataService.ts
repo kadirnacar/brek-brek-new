@@ -1,3 +1,4 @@
+import { Models } from '@models';
 import { BaseActions } from './BaseService';
 
 interface ServicesMetadata {
@@ -9,30 +10,30 @@ export class DataService {
 
   services: ServicesMetadata = {};
 
-  getService(entity: string) {
+  getService(entity: keyof typeof Models) {
     if (!this.services[entity]) {
       this.services[entity] = new BaseActions(entity);
     }
     return this.services[entity];
   }
 
-  public getList(entity: string, findOptions?: any): Realm.Results<any> {
+  public getList(entity: keyof typeof Models, findOptions?: any): Realm.Results<any> {
     return this.getService(entity).getList();
   }
 
-  public getById(entity: string, id: number): any {
+  public getById(entity: keyof typeof Models, id: number): any {
     return this.getService(entity).getById(id);
   }
 
-  public async update(entity: string, id: number, model: Partial<any>): Promise<any> {
+  public async update(entity: keyof typeof Models, id: number, model: Partial<any>): Promise<any> {
     return await this.getService(entity).update(id, model);
   }
 
-  public async save(entity: string, model: Partial<any>): Promise<any> {
+  public async save(entity: keyof typeof Models, model: Partial<any>): Promise<any> {
     return await this.getService(entity).create(model);
   }
-  
-  public async delete(entity: string, id: number): Promise<void> {
+
+  public async delete(entity: keyof typeof Models, id: number): Promise<void> {
     return await this.getService(entity).delete(id);
   }
 }
