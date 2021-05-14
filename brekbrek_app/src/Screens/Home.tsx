@@ -1,24 +1,13 @@
 import { NavigationProp } from '@react-navigation/core';
-import React, { Component } from 'react';
-import {
-  Image,
-  NativeModules,
-  SafeAreaView,
-  Text,
-  TextStyle,
-  TouchableOpacity,
-  View,
-  ViewStyle,
-} from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome5';
-import { Users } from '../Models';
-import { Colors } from '../Utils/Colors';
-import noAvatar from '../assets/no-avatar.png';
-import { IHelperModule } from '../Utils/IHelperModule';
-import { RealmService } from '../realm/RealmService';
 import { StackHeaderTitleProps } from '@react-navigation/stack';
-import { encode } from 'base64-arraybuffer';
+import React, { Component } from 'react';
+import { NativeModules, SafeAreaView, TouchableOpacity, View, ViewStyle } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 import HeaderLabel from '../Components/HeaderLabel';
+import { Users } from '../Models';
+import { RealmService } from '../realm/RealmService';
+import { Colors } from '../Utils/Colors';
+import { IHelperModule } from '../Utils/IHelperModule';
 
 const HelperModule: IHelperModule = NativeModules.HelperModule;
 
@@ -28,7 +17,7 @@ interface HomeProps {
 
 type Props = HomeProps;
 export class HomeScreenComp extends Component<Props, any> {
-  constructor(props: any) {
+  constructor(props: Props) {
     super(props);
 
     const userRepo: RealmService<Users> = new RealmService<Users>('Users');
@@ -42,10 +31,9 @@ export class HomeScreenComp extends Component<Props, any> {
     };
 
     this.props.navigation.setOptions({
-      headerTitle: (props: StackHeaderTitleProps) => {
-        return <HeaderLabel user={user} />;
+      headerTitle: (propss: StackHeaderTitleProps) => {
+        return <HeaderLabel user={user} navigation={props.navigation} />;
       },
-      headerTitleStyle: { textAlign: 'center', color: Colors.white },
     });
   }
 
