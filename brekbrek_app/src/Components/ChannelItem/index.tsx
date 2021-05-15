@@ -12,6 +12,7 @@ import {
   MenuTrigger,
   withMenuContext,
 } from 'react-native-popup-menu';
+import { NavigationProp } from '@react-navigation/core';
 
 const { height, width } = Dimensions.get('window');
 
@@ -20,6 +21,7 @@ interface ChannelItemState {
 }
 
 interface ChannelItemProps {
+  navigation: NavigationProp<any>;
   channel: Channels;
   onAction: (action: string, item: Channels) => void;
 }
@@ -38,6 +40,9 @@ class ChannelItem extends Component<Props, ChannelItemState> {
     return (
       <TouchableOpacity
         style={styles.listItem}
+        onPress={() => {
+          this.props.navigation.navigate('Channel');
+        }}
         onLongPress={() => {
           this.setState({ isMenuOpen: true });
         }}>

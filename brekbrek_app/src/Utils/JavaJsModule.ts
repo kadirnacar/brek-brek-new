@@ -24,6 +24,7 @@ class JavaJsModule {
 
   async callScript(message: any) {
     if (message.type == 'service') {
+      console.log(message);
       if (message.status) {
         await this.startRtcConnection();
       } else {
@@ -46,7 +47,7 @@ class JavaJsModule {
   private async startRtcConnection() {
     if (!this.rtcConnection) {
       this.rtcConnection = new RtcConnection(
-        `ws://192.168.0.12:3001?clientId=${this.clientId}&type=player`
+        `wss://192.168.0.12:3001?clientId=${this.clientId}&type=player`
       );
     }
     this.rtcConnection.connectServer();

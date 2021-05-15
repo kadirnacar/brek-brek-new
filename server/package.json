@@ -5,7 +5,7 @@
   "main": "./dist/server.js",
   "scripts": {
     "build-server": "webpack --config webpack.config.js",
-    "run-server": "nodemon --inspect ./dist/server.js",
+    "run-server": "nodemon ./dist/server.js",
     "run": "npm-run-all -p build-server run-server"
   },
   "author": "",

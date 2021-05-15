@@ -112,7 +112,12 @@ export class ChannelsScreenComp extends Component<Props, ChannelsState> {
             }}
             numColumns={3}
             renderItem={(info) => (
-              <ChannelItem onAction={this.handleItemAction} key={info.index} channel={info.item} />
+              <ChannelItem
+                navigation={this.props.navigation}
+                onAction={this.handleItemAction}
+                key={info.index}
+                channel={info.item}
+              />
             )}
           />
         </View>

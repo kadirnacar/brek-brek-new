@@ -19,7 +19,7 @@ export class SocketService {
       new URL(request.url, `http://${request.headers.host}`).searchParams.entries()
     );
     const clientId: any = params.get('clientId');
-
+console.log(request.url)
     if (!clientId) {
       socket.terminate();
       return;

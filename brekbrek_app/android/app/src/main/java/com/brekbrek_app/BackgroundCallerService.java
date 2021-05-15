@@ -14,7 +14,6 @@ import androidx.core.app.NotificationCompat;
 
 import com.brekbrek_app.utils.Recorder;
 import com.brekbrek_app.utils.VolumeKeyController;
-
 import java.util.HashMap;
 
 public class BackgroundCallerService extends Service {
