@@ -50,11 +50,6 @@ export class ProfileComp extends Component<Props, ProfileState> {
       user: user,
     };
 
-    this.props.navigation.setOptions({
-      headerTitle: (propss: StackHeaderTitleProps) => {
-        return <HeaderLabel user={user} navigation={props.navigation} />;
-      },
-    });
     this.touchableInactive = false;
   }
 
@@ -100,7 +95,7 @@ export class ProfileComp extends Component<Props, ProfileState> {
     if (!this.touchableInactive) {
       this.touchableInactive = true;
       const userRepo: RealmService<Users> = new RealmService<Users>('Users');
-      await userRepo.save(this.state.user);
+      await userRepo.update(this.state.user.id, this.state.user);
       ToastAndroid.showWithGravity('Bilgileriniz Kaydedilmiştir', 1000, ToastAndroid.TOP);
       this.touchableInactive = false;
     }
@@ -152,7 +147,7 @@ export class ProfileComp extends Component<Props, ProfileState> {
             style={styles.enterButton}
             onPress={this.saveUser}
             disabled={!this.state.user || !this.state.user.Name}>
-            <Text style={styles.enterButtonText}>Giriş</Text>
+            <Text style={styles.enterButtonText}>Kaydet</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

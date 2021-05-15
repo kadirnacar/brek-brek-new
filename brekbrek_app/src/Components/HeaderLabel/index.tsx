@@ -5,12 +5,14 @@ import { Image, Text, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import noAvatar from '../../assets/no-avatar.png';
 import { Users } from '../../Models';
+import { RealmService } from '../../realm/RealmService';
 import { Colors } from '../../Utils/Colors';
 
-interface HeaderLabelState {}
+interface HeaderLabelState {
+  user: Users;
+}
 
 interface HeaderLabelProps {
-  user: Users;
   navigation: NavigationProp<any>;
 }
 
@@ -19,11 +21,14 @@ type Props = HeaderLabelProps;
 export class HeaderLabel extends Component<Props, HeaderLabelState> {
   constructor(props: HeaderLabelProps) {
     super(props);
-    this.state = {};
+    const userRepo: RealmService<Users> = new RealmService<Users>('Users');
+    const users = userRepo.getAll();
+    const user = users[users.length - 1];
+    this.state = { user: user };
   }
 
   render() {
-    const { user } = this.props;
+    const { user } = this.state;
     return (
       <View
         style={{

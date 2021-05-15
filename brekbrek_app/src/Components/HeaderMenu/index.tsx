@@ -1,25 +1,24 @@
 import React, { Component } from 'react';
-import Icon from 'react-native-vector-icons/FontAwesome5';
+import { NavigationProp } from '@react-navigation/core';
+import { TouchableOpacity } from 'react-native';
 import {
   Menu,
-  MenuOptions,
+  MenuContextProps,
   MenuOption,
+  MenuOptions,
   MenuTrigger,
   withMenuContext,
-  MenuContextProps,
-  renderers,
 } from 'react-native-popup-menu';
-import { StyleSheet, Text, View } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 import { Colors } from '../../Utils/Colors';
-
-const { SlideInMenu, ContextMenu } = renderers;
 
 interface HeaderMenuState {
   isMenuOpen: boolean;
 }
 
-interface HeaderMenuProps {}
+interface HeaderMenuProps {
+  navigation: NavigationProp<any>;
+}
 
 type Props = HeaderMenuProps & MenuContextProps;
 
@@ -62,6 +61,9 @@ class HeaderMenu extends Component<Props, HeaderMenuState> {
             this.setState({ isMenuOpen: false });
           }}
           onSelect={(val) => {
+            if (val === 'profile') {
+              this.props.navigation.navigate('Profile');
+            }
             this.setState({ isMenuOpen: false });
           }}
           onClose={() => {
@@ -69,9 +71,7 @@ class HeaderMenu extends Component<Props, HeaderMenuState> {
           }}>
           <MenuTrigger disabled={false}></MenuTrigger>
           <MenuOptions customStyles={optionsStyles}>
-            <MenuOption text="Save" />
-            <MenuOption text="deneme"></MenuOption>
-            <MenuOption text="Disabled" />
+            <MenuOption text="Profil" value={'profile'} />
           </MenuOptions>
         </Menu>
       </>

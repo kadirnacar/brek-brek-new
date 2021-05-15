@@ -91,9 +91,9 @@ export class RegisterComp extends Component<Props, RegisterState> {
       });
       this.props.navigation.reset({
         index: 0,
-        routes: [{ name: 'Home' }],
+        routes: [{ name: 'Channels' }],
       });
-      this.props.navigation.navigate('Home');
+      this.props.navigation.navigate('Channels');
     }
   }
 
