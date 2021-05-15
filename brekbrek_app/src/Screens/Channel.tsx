@@ -22,7 +22,6 @@ export class ChannelScreenComp extends Component<Props, ChannelState> {
   }
 
   async componentDidMount() {
-    await HelperModule.testNetwork();
     HelperModule.startService("kanal 1");
   }
 

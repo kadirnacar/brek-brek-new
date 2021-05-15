@@ -1,7 +1,6 @@
 export interface IHelperModule {
   getDeviceId: () => string;
   getServiceStatus: () => string;
-  testNetwork: () => Promise<void>;
   startRecorder: () => Promise<void>;
   stopRecorder: () => Promise<void>;
   startService: (channelName: string) => Promise<void>;

@@ -16,7 +16,7 @@ const httpsOptions = {
 
   key: fs.readFileSync('./private.key'),
 };
-console.log(httpsOptions)
+
 // const server = http.createServer(App);
 const server = https.createServer(httpsOptions, App);
 server.listen(port);
