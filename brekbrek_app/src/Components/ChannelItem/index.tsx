@@ -41,25 +41,6 @@ class ChannelItem extends Component<Props, ChannelItemState> {
         onLongPress={() => {
           this.setState({ isMenuOpen: true });
         }}>
-        <Menu
-          opened={this.state.isMenuOpen}
-          onBackdropPress={() => {
-            // this.setState({ isMenuOpen: false });
-          }}
-          onSelect={(val) => {
-            this.setState({ isMenuOpen: false });
-            if (this.props.onAction) {
-              this.props.onAction(val, this.props.channel);
-            }
-          }}
-          onClose={() => {
-            // this.setState({ isMenuOpen: false });
-          }}>
-          <MenuTrigger disabled={false}></MenuTrigger>
-          <MenuOptions customStyles={optionsStyles}>
-            <MenuOption text="Sil" value={'delete'} />
-          </MenuOptions>
-        </Menu>
         <View
           style={{
             width: width / 3 - 30,
@@ -74,17 +55,42 @@ class ChannelItem extends Component<Props, ChannelItemState> {
             alignItems: 'center',
             alignContent: 'center',
           }}>
+          <Menu
+            opened={this.state.isMenuOpen}
+            onBackdropPress={() => {
+              this.setState({ isMenuOpen: false });
+            }}
+            onSelect={(val) => {
+              this.setState({ isMenuOpen: false });
+              if (this.props.onAction) {
+                this.props.onAction(val, this.props.channel);
+              }
+            }}
+            onClose={() => {
+              this.setState({ isMenuOpen: false });
+            }}>
+            <MenuTrigger disabled={false}></MenuTrigger>
+            <MenuOptions customStyles={optionsStyles}>
+              <MenuOption text="Düzenle" value={'edit'} />
+              <MenuOption text="Sil" value={'delete'} />
+            </MenuOptions>
+          </Menu>
           <Image
-            resizeMode="center"
+            resizeMode="cover"
             style={{
-              width: '70%',
-              height: '70%',
+              width: '100%',
+              height: '100%',
+              borderRadius: (width / 3 - 30) / 2,
               justifyContent: 'center',
               alignSelf: 'center',
               alignItems: 'center',
               alignContent: 'center',
             }}
-            source={this.props.channel.Image ? encode(this.props.channel.Image) : channelGrayIcon}
+            source={
+              this.props.channel.Image
+                ? { uri: `data:image/png;base64,${encode(this.props.channel.Image)}` }
+                : channelGrayIcon
+            }
           />
         </View>
         <Text style={styles.listItemLabel}>{this.props.channel.Name}</Text>

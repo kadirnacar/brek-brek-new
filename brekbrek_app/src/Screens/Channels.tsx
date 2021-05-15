@@ -1,19 +1,17 @@
 import { NavigationProp } from '@react-navigation/core';
 import { ObjectId } from 'bson';
 import React, { Component } from 'react';
-import { Dimensions, FlatList, StyleSheet, TextInput, View } from 'react-native';
-import FAB from 'react-native-fab';
+import { FlatList, StyleSheet, TextInput, View } from 'react-native';
+import { FloatingAction } from 'react-native-floating-action';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import ChannelForm from '../Components/ChannelForm';
 import ChannelItem from '../Components/ChannelItem';
 import FormModal from '../Components/FormModal';
-import { Channels, Users } from '../Models';
+import { Channels } from '../Models';
 import { RealmService } from '../realm/RealmService';
 import { Colors } from '../Utils/Colors';
 
-const userRepo: RealmService<Users> = new RealmService<Users>('Users');
 const channelRepo: RealmService<Channels> = new RealmService<Channels>('Channels');
-const { height, width } = Dimensions.get('window');
-
 interface ChannelsState {
   channels: Channels[];
   showAddModal: boolean;
@@ -62,7 +60,10 @@ export class ChannelsScreenComp extends Component<Props, ChannelsState> {
     if (!newChannel.id) {
       newChannel.id = new ObjectId();
       await channelRepo.save(newChannel);
+    } else {
+      await channelRepo.update(newChannel.id, newChannel);
     }
+
     this.setState({
       showAddModal: false,
       channels: channelRepo.getAll().toJSON(),
@@ -82,6 +83,10 @@ export class ChannelsScreenComp extends Component<Props, ChannelsState> {
       this.setState({
         channels: channelRepo.getAll().toJSON(),
       });
+    } else if (action === 'edit') {
+      this.setState({ newChannel: item, showAddModal: true }, () => {
+        this.addInputRef.current?.focus();
+      });
     }
   }
 
@@ -93,23 +98,9 @@ export class ChannelsScreenComp extends Component<Props, ChannelsState> {
           onOkPress={this.saveNew}
           onCancelPress={this.cancelAddModal}
           onCloseModal={this.cancelAddModal}
-          title="Yeni Kanal">
+          title={!this.state.newChannel.id ? 'Yeni Kanal' : 'Kanal Düzenle'}>
           <View style={styles.addModalContainer}>
-            <TextInput
-              placeholder="Kanal Adı"
-              autoFocus={true}
-              clearButtonMode="always"
-              clearTextOnFocus
-              ref={this.addInputRef}
-              placeholderTextColor={Colors.dark}
-              value={this.state.newChannel.Name ? this.state.newChannel.Name : ''}
-              onChangeText={(text) => {
-                const { newChannel } = this.state;
-                newChannel.Name = text;
-                this.setState({ newChannel });
-              }}
-              style={styles.addInput}
-            />
+            <ChannelForm channel={this.state.newChannel} onAction={() => {}} />
           </View>
         </FormModal>
         <View style={styles.content}>
@@ -125,13 +116,20 @@ export class ChannelsScreenComp extends Component<Props, ChannelsState> {
             )}
           />
         </View>
-
-        <FAB
-          buttonColor={Colors.primary}
-          iconTextColor={Colors.white}
-          onClickAction={this.openAddModal}
-          visible={true}
-          iconTextComponent={<Icon name="plus" />}
+        <FloatingAction
+          actions={[
+            {
+              name: 'add',
+              icon: <Icon name="plus" />,
+              text: 'Yeni kanal ekle',
+              color: Colors.primary,
+            },
+          ]}
+          onPressItem={(name) => {
+            if (name === 'add') {
+              this.openAddModal();
+            }
+          }}
         />
       </View>
     );
@@ -151,13 +149,5 @@ const styles = StyleSheet.create({
   },
   addModalContainer: {
     flex: 1,
-  },
-  addInput: {
-    color: Colors.black,
-    backgroundColor: Colors.lighter,
-    textAlign: 'center',
-    fontSize: 16,
-    fontWeight: 'bold',
-    padding: 7,
   },
 });

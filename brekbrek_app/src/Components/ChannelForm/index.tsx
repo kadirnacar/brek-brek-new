@@ -1,56 +1,47 @@
-import { NavigationProp } from '@react-navigation/native';
 import { decode, encode } from 'base64-arraybuffer';
 import React, { Component } from 'react';
 import {
+  Dimensions,
   Image,
-  KeyboardAvoidingView,
   StyleSheet,
   Text,
   TextInput,
-  ToastAndroid,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
-import noAvatar from '../assets/no-avatar.png';
-import { FormModal } from '../Components/FormModal';
-import { Users } from '../Models/Channels';
-import { RealmService } from '../realm/RealmService';
-import { Colors } from '../Utils/Colors';
+import { MenuContextProps, withMenuContext } from 'react-native-popup-menu';
+import channelGrayIcon from '../../../src/assets/channelgray.png';
+import { Channels } from '../../Models';
+import { Colors } from '../../Utils/Colors';
+import FormModal from '../FormModal';
 
-interface ProfileState {
+const { height, width } = Dimensions.get('window');
+
+interface ChannelFormState {
   showImageSelector: boolean;
-  user: Users;
+  isMenuOpen: boolean;
 }
 
-interface ProfileProps {
-  navigation: NavigationProp<any>;
+interface ChannelFormProps {
+  channel: Channels;
+  onAction: (action: string, item: Channels) => void;
 }
 
-type Props = ProfileProps;
+type Props = ChannelFormProps & MenuContextProps;
 
-export class ProfileComp extends Component<Props, ProfileState> {
+class ChannelForm extends Component<Props, ChannelFormState> {
   constructor(props: Props) {
     super(props);
     this.showImageModal = this.showImageModal.bind(this);
     this.cancelImageSelector = this.cancelImageSelector.bind(this);
     this.setImageSelector = this.setImageSelector.bind(this);
     this.setCameraSelector = this.setCameraSelector.bind(this);
-    this.saveUser = this.saveUser.bind(this);
-
-    const userRepo: RealmService<Users> = new RealmService<Users>('Users');
-    const users = userRepo.getAll();
-    const user = users[users.length - 1];
-
     this.state = {
+      isMenuOpen: false,
       showImageSelector: false,
-      user: user,
     };
-
-    this.touchableInactive = false;
   }
-
-  touchableInactive: boolean;
 
   showImageModal() {
     this.setState({ showImageSelector: true });
@@ -66,9 +57,9 @@ export class ProfileComp extends Component<Props, ProfileState> {
       { mediaType: 'photo', includeBase64: true, maxHeight: 500, maxWidth: 500, quality: 0.7 },
       (response) => {
         if (response.base64) {
-          const { user } = this.state;
-          user.Image = decode(response.base64);
-          this.setState({ user });
+          const { channel } = this.props;
+          channel.Image = decode(response.base64);
+          this.setState({});
         }
       }
     );
@@ -80,27 +71,16 @@ export class ProfileComp extends Component<Props, ProfileState> {
       { mediaType: 'photo', includeBase64: true, maxHeight: 500, maxWidth: 500, quality: 0.7 },
       async (response) => {
         if (response.base64) {
-          const { user } = this.state;
-          user.Image = decode(response.base64);
-          this.setState({ user });
+          const { channel } = this.props;
+          channel.Image = decode(response.base64);
+          this.setState({});
         }
       }
     );
   }
-
-  async saveUser() {
-    if (!this.touchableInactive) {
-      this.touchableInactive = true;
-      const userRepo: RealmService<Users> = new RealmService<Users>('Users');
-      await userRepo.update(this.state.user.id, this.state.user);
-      ToastAndroid.showWithGravity('Bilgileriniz Kaydedilmiştir', 1000, ToastAndroid.TOP);
-      this.touchableInactive = false;
-    }
-  }
-
   render() {
     return (
-      <KeyboardAvoidingView style={styles.screen} behavior="padding">
+      <>
         <FormModal
           show={this.state.showImageSelector}
           hideOkButton={true}
@@ -117,74 +97,49 @@ export class ProfileComp extends Component<Props, ProfileState> {
             </TouchableOpacity>
           </View>
         </FormModal>
+
         <View style={styles.content}>
           <TouchableOpacity onPress={this.showImageModal} style={styles.imageContainer}>
             <Image
               resizeMode="cover"
               source={
-                this.state.user && this.state.user.Image
-                  ? { uri: `data:image/png;base64,${encode(this.state.user.Image)}` }
-                  : noAvatar
+                this.props.channel && this.props.channel.Image
+                  ? { uri: `data:image/png;base64,${encode(this.props.channel.Image)}` }
+                  : channelGrayIcon
               }
               style={styles.image}
             />
             <Text style={styles.imageLabel}>Resim Seç</Text>
           </TouchableOpacity>
-          <Text style={styles.label}>Rumuz</Text>
           <TextInput
-            value={this.state.user ? this.state.user.Name : ''}
+            placeholder="Kanal Adı"
+            autoFocus={true}
+            clearButtonMode="always"
+            clearTextOnFocus
+            placeholderTextColor={Colors.dark}
+            value={this.props.channel.Name ? this.props.channel.Name : ''}
             onChangeText={(text) => {
-              const { user } = this.state;
-              user.Name = text;
-              this.setState({ user });
+              this.props.channel.Name = text;
+              this.setState({});
             }}
-            style={styles.input}
+            style={styles.addInput}
           />
-          <TouchableOpacity
-            style={styles.enterButton}
-            onPress={this.saveUser}
-            disabled={!this.state.user || !this.state.user.Name}>
-            <Text style={styles.enterButtonText}>Kaydet</Text>
-          </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
+      </>
     );
   }
 }
 
+export default withMenuContext(ChannelForm);
+
 const styles = StyleSheet.create({
-  screen: {
-    backgroundColor: Colors.darker,
+  imageSelectorContainer: {
     flex: 1,
-    paddingTop: 70,
   },
   content: {
     padding: 10,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  label: {
-    color: Colors.white,
-    fontWeight: 'bold',
-    fontSize: 18,
-    marginBottom: 10,
-    textTransform: 'uppercase',
-  },
-  input: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    borderRadius: 30,
-    color: Colors.black,
-    paddingHorizontal: 20,
-    textAlign: 'center',
-    backgroundColor: Colors.lighter,
-    width: '100%',
-    fontFamily: 'Nunito-Regular',
-    textAlignVertical: 'center',
-    marginTop: 4,
-  },
-  imageContainer: {
-    marginBottom: 50,
   },
   imageLabel: {
     color: Colors.white,
@@ -198,8 +153,8 @@ const styles = StyleSheet.create({
     borderColor: Colors.lighter,
     marginBottom: 10,
   },
-  imageSelectorContainer: {
-    flex: 1,
+  imageContainer: {
+    marginBottom: 50,
   },
   imageSelectorItem: {
     paddingVertical: 10,
@@ -211,20 +166,17 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
-  enterButtonText: {
-    color: Colors.lighter,
-    fontSize: 20,
+  addInput: {
+    fontSize: 16,
     fontWeight: 'bold',
-    textAlign: 'center',
-    paddingHorizontal: 20,
-  },
-  enterButton: {
-    padding: 10,
     borderRadius: 30,
-    backgroundColor: Colors.dark,
+    color: Colors.black,
+    paddingHorizontal: 20,
+    textAlign: 'center',
+    backgroundColor: Colors.lighter,
     width: '100%',
     fontFamily: 'Nunito-Regular',
     textAlignVertical: 'center',
-    marginTop: 20,
+    marginTop: 4,
   },
 });

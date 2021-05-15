@@ -59,7 +59,9 @@ export class RealmService<T> {
       RealmService.realm.write(() => {
         Object.getOwnPropertyNames(updates).forEach((x) => {
           const d = x as keyof T;
-          model[x] = updates[d];
+          if (d !== 'id') {
+            model[x] = updates[d];
+          }
         });
         resolve(model);
       });
