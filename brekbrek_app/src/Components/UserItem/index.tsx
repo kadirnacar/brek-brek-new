@@ -2,7 +2,7 @@ import { encode } from 'base64-arraybuffer';
 import React, { Component } from 'react';
 import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import channelGrayIcon from '../../../src/assets/channelgray.png';
-import { Channels } from '../../Models';
+import { Channels, Users } from '../../Models';
 import { Colors } from '../../Utils/Colors';
 import {
   Menu,
@@ -16,19 +16,19 @@ import { NavigationProp } from '@react-navigation/core';
 
 const { height, width } = Dimensions.get('window');
 
-interface ChannelItemState {
+interface UserItemState {
   isMenuOpen: boolean;
 }
 
-interface ChannelItemProps {
+interface UserItemProps {
   navigation: NavigationProp<any>;
-  channel: Channels;
-  onAction: (action: string, item: Channels) => void;
+  user: Users;
+  onAction: (action: string, item: Users) => void;
 }
 
-type Props = ChannelItemProps & MenuContextProps;
+type Props = UserItemProps & MenuContextProps;
 
-class ChannelItem extends Component<Props, ChannelItemState> {
+class UserItem extends Component<Props, UserItemState> {
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -41,7 +41,7 @@ class ChannelItem extends Component<Props, ChannelItemState> {
       <TouchableOpacity
         style={styles.listItem}
         onPress={() => {
-          this.props.navigation.navigate('Channel', { id:this.props.channel.id.toHexString() });
+          // this.props.navigation.navigate('User', { id: this.props.user.id.toHexString() });
         }}
         onLongPress={() => {
           this.setState({ isMenuOpen: true });
@@ -51,7 +51,6 @@ class ChannelItem extends Component<Props, ChannelItemState> {
             width: width / 3 - 30,
             height: width / 3 - 30,
             backgroundColor: Colors.dark,
-            // backgroundColor: Colors.generateColor(info.item.Name),
             borderRadius: (width / 3 - 30) / 2,
             borderWidth: 5,
             borderColor: Colors.light,
@@ -68,7 +67,7 @@ class ChannelItem extends Component<Props, ChannelItemState> {
             onSelect={(val) => {
               this.setState({ isMenuOpen: false });
               if (this.props.onAction) {
-                this.props.onAction(val, this.props.channel);
+                this.props.onAction(val, this.props.user);
               }
             }}
             onClose={() => {
@@ -93,19 +92,19 @@ class ChannelItem extends Component<Props, ChannelItemState> {
               alignContent: 'center',
             }}
             source={
-              this.props.channel.Image
-                ? { uri: `data:image/png;base64,${encode(this.props.channel.Image)}` }
+              this.props.user.Image
+                ? { uri: `data:image/png;base64,${encode(this.props.user.Image)}` }
                 : channelGrayIcon
             }
           />
         </View>
-        <Text style={styles.listItemLabel}>{this.props.channel.Name}</Text>
+        <Text style={styles.listItemLabel}>{this.props.user.Name}</Text>
       </TouchableOpacity>
     );
   }
 }
 
-export default withMenuContext(ChannelItem);
+export default withMenuContext(UserItem);
 
 const optionsStyles = {
   optionsContainer: {

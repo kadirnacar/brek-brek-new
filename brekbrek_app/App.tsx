@@ -92,6 +92,8 @@ export default class App extends Component<any, AppState> {
                       tabBarIcon: (props) => {
                         return (
                           <Image
+                            resizeMode="cover"
+                            resizeMethod="scale"
                             style={{ width: props.size, height: props.size }}
                             source={props.focused ? channelIcon : channelGrayIcon}
                           />
@@ -99,7 +101,7 @@ export default class App extends Component<any, AppState> {
                       },
                     }}
                     component={ChannelsScreenComp}></Tab.Screen>
-{/* 
+                  {/* 
                   <Tab.Screen
                     name="Contacts"
                     options={{

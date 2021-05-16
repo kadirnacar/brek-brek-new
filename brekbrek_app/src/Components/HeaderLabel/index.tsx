@@ -14,6 +14,8 @@ interface HeaderLabelState {
 
 interface HeaderLabelProps {
   navigation: NavigationProp<any>;
+  image?: ArrayBuffer;
+  name?: string;
 }
 
 type Props = HeaderLabelProps;
@@ -59,15 +61,26 @@ export class HeaderLabel extends Component<Props, HeaderLabelState> {
         ) : null}
         <TouchableOpacity
           onPress={() => {
-            this.props.navigation.navigate('Profile');
+            if (!this.props.name) {
+              this.props.navigation.navigate('Profile');
+            }
           }}>
           <Image
             resizeMode="cover"
-            source={user.Image ? { uri: `data:image/png;base64,${encode(user.Image)}` } : noAvatar}
+            resizeMethod="scale"
+            source={
+              this.props.image
+                ? this.props.image
+                : user.Image
+                ? {
+                    uri: `data:image/png;base64,${encode(user.Image)}`,
+                  }
+                : noAvatar
+            }
             style={{
               height: 40,
               width: 40,
-              borderRadius: 50,
+              borderRadius: 10,
               borderWidth: 1,
               borderColor: Colors.lighter,
               marginRight: 10,
@@ -80,7 +93,7 @@ export class HeaderLabel extends Component<Props, HeaderLabelState> {
             color: Colors.white,
             textAlignVertical: 'center',
           }}>
-          {user.Name}
+          {this.props.name ? this.props.name : user.Name}
         </Text>
       </View>
     );
