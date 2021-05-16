@@ -20,6 +20,7 @@ export class SocketService {
     );
     const clientId: any = params.get('clientId');
 
+console.log(request.url);
     if (!clientId) {
       socket.terminate();
       return;

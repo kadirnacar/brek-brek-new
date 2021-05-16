@@ -7,11 +7,12 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import ChannelForm from '../Components/ChannelForm';
 import ChannelItem from '../Components/ChannelItem';
 import FormModal from '../Components/FormModal';
-import { Channels } from '../Models';
+import { Channels, Users } from '../Models';
 import { RealmService } from '../realm/RealmService';
 import { Colors } from '../Utils/Colors';
 
 const channelRepo: RealmService<Channels> = new RealmService<Channels>('Channels');
+const userRepo: RealmService<Users> = new RealmService<Users>('Users');
 interface ChannelsState {
   channels: Channels[];
   showAddModal: boolean;
@@ -45,8 +46,10 @@ export class ChannelsScreenComp extends Component<Props, ChannelsState> {
   addInputRef: React.RefObject<TextInput>;
 
   async componentDidMount() {
+    const channels = channelRepo.getAll().toJSON();
+    console.log(channels);
     this.setState({
-      channels: channelRepo.getAll().toJSON(),
+      channels: channels || [],
     });
   }
 
@@ -59,6 +62,9 @@ export class ChannelsScreenComp extends Component<Props, ChannelsState> {
 
     if (!newChannel.id) {
       newChannel.id = new ObjectId();
+      const users = userRepo.getAll();
+      const user = users[users.length - 1];
+      newChannel.Contacts?.push(user);
       await channelRepo.save(newChannel);
     } else {
       await channelRepo.update(newChannel.id, newChannel);

@@ -2,6 +2,7 @@ import { NativeModules } from 'react-native';
 import { RtcConnection } from './RtcConnection';
 import { uuidv4 } from './Tools';
 import { IHelperModule } from './IHelperModule';
+import { config } from './config';
 
 const HelperModule: IHelperModule = NativeModules.HelperModule;
 
@@ -11,7 +12,7 @@ class JavaJsModule {
   }
 
   private static instance: JavaJsModule;
-  private rtcConnection: RtcConnection;
+  public rtcConnection: RtcConnection;
   private clientId: string;
 
   public static getInstance(): JavaJsModule {
@@ -24,7 +25,6 @@ class JavaJsModule {
 
   async callScript(message: any) {
     if (message.type == 'service') {
-      console.log(message);
       if (message.status) {
         await this.startRtcConnection();
       } else {
@@ -47,10 +47,10 @@ class JavaJsModule {
   private async startRtcConnection() {
     if (!this.rtcConnection) {
       this.rtcConnection = new RtcConnection(
-        `wss://192.168.0.12:3001?clientId=${this.clientId}&type=player`
+        `${config.socketUrl}?clientId=${this.clientId}&type=player`
       );
     }
-    this.rtcConnection.connectServer();
+    this.rtcConnection.connectServer(true);
     this.rtcConnection.onMessage = async (msg) => {
       if (msg.type && msg.type == 'clients') {
         const streamer = msg.data.find((x: any) => x.clientId !== this.clientId);

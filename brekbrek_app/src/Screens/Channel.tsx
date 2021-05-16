@@ -10,6 +10,12 @@ import { IHelperModule } from '../Utils/IHelperModule';
 import channelGrayIcon from '../../src/assets/channelgray.png';
 import { encode } from 'base64-arraybuffer';
 import UserItem from '../Components/UserItem';
+import { FloatingAction } from 'react-native-floating-action';
+import Icon from 'react-native-vector-icons/FontAwesome5';
+import JavaJsModule from '../Utils/JavaJsModule';
+import { config } from '../Utils/config';
+import * as RNFS from 'react-native-fs';
+import Share from 'react-native-share';
 
 const HelperModule: IHelperModule = NativeModules.HelperModule;
 const channelRepo: RealmService<Channels> = new RealmService<Channels>('Channels');
@@ -28,6 +34,7 @@ export class ChannelScreenComp extends Component<Props, ChannelState> {
   constructor(props: Props) {
     super(props);
     this.handleItemAction = this.handleItemAction.bind(this);
+    this.shareChannel = this.shareChannel.bind(this);
     this.state = {
       channel: undefined,
     };
@@ -67,6 +74,18 @@ export class ChannelScreenComp extends Component<Props, ChannelState> {
     }
   }
 
+  async shareChannel() {
+    RNFS.writeFile(
+      `file:///${RNFS.CachesDirectoryPath}/channel.brekbrek`,
+      JSON.stringify({ id: this.state.channel?.id, Name: this.state.channel?.Name })
+    );
+    const result = await Share.open({
+      title: 'Kanal Daveti',
+      message: 'Davet Et',
+      url: `file:///${RNFS.CachesDirectoryPath}/channel.brekbrek`,
+    });
+  }
+
   render() {
     return (
       <View style={styles.screen}>
@@ -87,6 +106,36 @@ export class ChannelScreenComp extends Component<Props, ChannelState> {
               user={info.item}
             />
           )}
+        />
+
+        <FloatingAction
+          actions={[
+            {
+              name: 'add',
+              icon: <Icon name="plus" />,
+              text: 'Kişi ekle',
+              color: Colors.primary,
+            },
+            {
+              name: 'invite',
+              icon: <Icon name="share-alt" color={Colors.white} />,
+              text: 'Davet et',
+              color: Colors.primary,
+            },
+            {
+              name: 'ping',
+              icon: <Icon name="plus" />,
+              text: 'ping',
+              color: Colors.primary,
+            },
+          ]}
+          onPressItem={async (name) => {
+            if (name == 'ping') {
+              JavaJsModule.rtcConnection.sendMessage('ddd', { type: 'ping' });
+            } else if (name === 'invite') {
+              await this.shareChannel();
+            }
+          }}
         />
       </View>
     );

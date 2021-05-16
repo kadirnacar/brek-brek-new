@@ -1,12 +1,3 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * Generated with the TypeScript template
- * https://github.com/react-native-community/react-native-template-typescript
- *
- * @format
- */
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -15,7 +6,6 @@ import { Image } from 'react-native';
 import 'react-native-gesture-handler';
 import 'react-native-get-random-values';
 import { MenuProvider } from 'react-native-popup-menu';
-import Icon from 'react-native-vector-icons/FontAwesome5';
 import BatchedBridge from 'react-native/Libraries/BatchedBridge/BatchedBridge';
 import channelIcon from './src/assets/channel.png';
 import channelGrayIcon from './src/assets/channelgray.png';
@@ -25,7 +15,6 @@ import { Users } from './src/Models';
 import { RealmService } from './src/realm/RealmService';
 import { ChannelScreenComp } from './src/Screens/Channel';
 import { ChannelsScreenComp } from './src/Screens/Channels';
-import { ContactsScreenComp } from './src/Screens/Contacts';
 import { ProfileComp } from './src/Screens/Profile';
 import { RegisterComp } from './src/Screens/Register';
 import { Colors } from './src/Utils/Colors';
