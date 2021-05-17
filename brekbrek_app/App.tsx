@@ -98,25 +98,9 @@ export default class App extends Component<any, ApplicationState> {
   navigationRef: React.RefObject<NavigationContainerRef>;
 
   render() {
-    const linking = {
-      prefixes: ['.*\\.brekbrek'],
-      config: {
-        screens: {
-          Channels: 'refresh',
-        },
-      },
-    };
     return (
       <MenuProvider skipInstanceCheck={true}>
         <NavigationContainer
-          linking={{
-            prefixes: ['.*\\.brekbrek', 'content://'],
-            config: {
-              screens: {
-                Channels: 'refresh',
-              },
-            },
-          }}
           ref={this.navigationRef}>
           <Stack.Navigator
             initialRouteName={this.state.isLogin ? 'Channels' : 'Register'}
