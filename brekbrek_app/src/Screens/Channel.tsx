@@ -1,21 +1,20 @@
 import { NavigationProp, RouteProp } from '@react-navigation/core';
+import { encode } from 'base64-arraybuffer';
 import { ObjectId } from 'bson';
 import React, { Component } from 'react';
 import { FlatList, NativeModules, StyleSheet, View } from 'react-native';
+import { FloatingAction } from 'react-native-floating-action';
+import * as RNFS from 'react-native-fs';
+import Share from 'react-native-share';
+import Icon from 'react-native-vector-icons/FontAwesome5';
+import channelGrayIcon from '../../src/assets/channelgray.png';
 import HeaderLabel from '../Components/HeaderLabel';
+import UserItem from '../Components/UserItem';
 import { Channels, Users } from '../Models';
 import { RealmService } from '../realm/RealmService';
 import { Colors } from '../Utils/Colors';
 import { IHelperModule } from '../Utils/IHelperModule';
-import channelGrayIcon from '../../src/assets/channelgray.png';
-import { encode } from 'base64-arraybuffer';
-import UserItem from '../Components/UserItem';
-import { FloatingAction } from 'react-native-floating-action';
-import Icon from 'react-native-vector-icons/FontAwesome5';
 import JavaJsModule from '../Utils/JavaJsModule';
-import { config } from '../Utils/config';
-import * as RNFS from 'react-native-fs';
-import Share from 'react-native-share';
 
 const HelperModule: IHelperModule = NativeModules.HelperModule;
 const channelRepo: RealmService<Channels> = new RealmService<Channels>('Channels');

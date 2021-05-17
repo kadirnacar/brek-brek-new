@@ -7,7 +7,7 @@ export class Users {
   id: ObjectId;
 
   @Column('string')
-  Name: string;
+  Name?: string;
 
   @Column({ type: 'bool', default: false })
   isSystem: boolean = false;

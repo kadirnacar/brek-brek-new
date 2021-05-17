@@ -4,24 +4,25 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { decode } from 'base64-arraybuffer';
 import { ObjectId } from 'bson';
 import React, { Component } from 'react';
-import { AppState, AppStateStatus, Image, Linking, ToastAndroid } from 'react-native';
+import { AppState, AppStateStatus, KeyboardAvoidingView, Linking, ToastAndroid, View } from 'react-native';
 import * as RNFS from 'react-native-fs';
 import 'react-native-gesture-handler';
 import 'react-native-get-random-values';
 import { MenuProvider } from 'react-native-popup-menu';
+import { enableScreens } from 'react-native-screens';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 import BatchedBridge from 'react-native/Libraries/BatchedBridge/BatchedBridge';
-import channelIcon from './src/assets/channel.png';
-import channelGrayIcon from './src/assets/channelgray.png';
 import HeaderLabel from './src/Components/HeaderLabel';
 import HeaderMenu from './src/Components/HeaderMenu';
 import { Channels, Users } from './src/Models';
 import { RealmService } from './src/realm/RealmService';
 import { ChannelScreenComp } from './src/Screens/Channel';
-import { ChannelsScreenComp } from './src/Screens/Channels';
+import { ContactsScreenComp } from './src/Screens/Contacts';
 import { ProfileComp } from './src/Screens/Profile';
 import { RegisterComp } from './src/Screens/Register';
 import { Colors } from './src/Utils/Colors';
 import JavaJsModule from './src/Utils/JavaJsModule';
+enableScreens(false);
 
 if (!BatchedBridge.getCallableModule('JavaJsModule')) {
   BatchedBridge.registerCallableModule('JavaJsModule', JavaJsModule);
@@ -98,38 +99,59 @@ export default class App extends Component<any, ApplicationState> {
 
   render() {
     return (
-      <MenuProvider skipInstanceCheck={true}>
-        <NavigationContainer ref={this.navigationRef}>
-          <Stack.Navigator
-            initialRouteName={this.state.isLogin ? 'Channels' : 'Register'}
-            headerMode="screen"
-            mode="card"
-            screenOptions={(props) => ({
-              headerTitle: this.state.isLogin ? '' : 'BrekBrek',
-              headerTransparent: true,
-              headerTintColor: Colors.white,
-              headerLeft: (propss) =>
-                this.state.isLogin ? <HeaderLabel navigation={props.navigation} /> : null,
-              headerRight: (propss) =>
-                this.state.isLogin ? <HeaderMenu navigation={props.navigation} /> : null,
-            })}>
-            <Stack.Screen name="Channels">
-              {() => (
-                <Tab.Navigator
-                  initialRouteName="Channels"
-                  tabBarOptions={{
-                    activeBackgroundColor: Colors.darker,
-                    activeTintColor: Colors.white,
-                    inactiveBackgroundColor: Colors.dark,
-                    inactiveTintColor: Colors.black,
-                    labelPosition: 'below-icon',
-                    labelStyle: { fontSize: 16 },
-                    adaptive: true,
-                    style: { height: 70 },
-                    tabStyle: { padding: 10 },
-                  }}
-                  sceneContainerStyle={{ backgroundColor: Colors.darker }}>
-                  <Tab.Screen
+      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: Colors.darker }}>
+        <MenuProvider skipInstanceCheck={true}>
+          <NavigationContainer ref={this.navigationRef}>
+            <Stack.Navigator
+              initialRouteName={this.state.isLogin ? 'Channels' : 'Register'}
+              headerMode="screen"
+              mode="card"
+              screenOptions={(props) => ({
+                cardStyle: { backgroundColor: Colors.dark },
+                cardOverlayEnabled: false,
+                cardShadowEnabled: false,
+                animationEnabled: false,
+                headerTitle: this.state.isLogin ? '' : 'BrekBrek',
+                headerTransparent: true,
+                headerStyle: { backgroundColor: Colors.darker },
+                headerTintColor: Colors.white,
+                headerLeft: (propss) =>
+                  this.state.isLogin ? <HeaderLabel navigation={props.navigation} /> : null,
+                headerRight: (propss) =>
+                  this.state.isLogin ? <HeaderMenu navigation={props.navigation} /> : null,
+              })}>
+              <Stack.Screen name="Channels">
+                {() => (
+                  <Tab.Navigator
+                    initialRouteName="Contacts"
+                    tabBarOptions={{
+                      activeBackgroundColor: Colors.darker,
+                      activeTintColor: Colors.white,
+                      inactiveBackgroundColor: Colors.dark,
+                      inactiveTintColor: Colors.black,
+                      labelPosition: 'below-icon',
+                      labelStyle: { fontSize: 16 },
+                      adaptive: true,
+                      style: { height: 70 },
+                      tabStyle: { padding: 10 },
+                    }}
+                    sceneContainerStyle={{ backgroundColor: Colors.darker }}>
+                    <Tab.Screen
+                      name="Contacts"
+                      options={{
+                        tabBarLabel: 'Kişiler',
+                        tabBarIcon: (props) => {
+                          return (
+                            <Icon
+                              name="users"
+                              {...props}
+                              color={props.focused ? Colors.primary : Colors.darker}
+                            />
+                          );
+                        },
+                      }}
+                      component={ContactsScreenComp}></Tab.Screen>
+                    {/* <Tab.Screen
                     name="Channels"
                     options={{
                       tabBarLabel: 'Kanallar',
@@ -144,43 +166,28 @@ export default class App extends Component<any, ApplicationState> {
                         );
                       },
                     }}
-                    component={ChannelsScreenComp}></Tab.Screen>
-                  {/* 
-                  <Tab.Screen
-                    name="Contacts"
-                    options={{
-                      tabBarLabel: 'Kişiler',
-                      tabBarIcon: (props) => {
-                        return (
-                          <Icon
-                            name="users"
-                            {...props}
-                            color={props.focused ? Colors.primary : Colors.darker}
-                          />
-                        );
-                      },
-                    }}
-                    component={ContactsScreenComp}></Tab.Screen> */}
-                </Tab.Navigator>
-              )}
-            </Stack.Screen>
-            <Stack.Screen
-              name="Register"
-              component={RegisterComp}
-              listeners={{
-                beforeRemove: () => {
-                  const user = userRepo.getAll()?.find((x) => x.isSystem);
-                  this.setState({
-                    isLogin: !!user,
-                  });
-                },
-              }}
-            />
-            <Stack.Screen name="Channel" component={ChannelScreenComp} />
-            <Stack.Screen name="Profile" component={ProfileComp} />
-          </Stack.Navigator>
-        </NavigationContainer>
-      </MenuProvider>
+                    component={ChannelsScreenComp}></Tab.Screen> */}
+                  </Tab.Navigator>
+                )}
+              </Stack.Screen>
+              <Stack.Screen
+                name="Register"
+                component={RegisterComp}
+                listeners={{
+                  beforeRemove: () => {
+                    const user = userRepo.getAll()?.find((x) => x.isSystem);
+                    this.setState({
+                      isLogin: !!user,
+                    });
+                  },
+                }}
+              />
+              <Stack.Screen name="Channel" component={ChannelScreenComp} />
+              <Stack.Screen name="Profile" component={ProfileComp} />
+            </Stack.Navigator>
+          </NavigationContainer>
+        </MenuProvider>
+      </KeyboardAvoidingView>
     );
   }
 }

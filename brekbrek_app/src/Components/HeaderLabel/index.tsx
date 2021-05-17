@@ -1,15 +1,17 @@
 import { NavigationProp } from '@react-navigation/native';
 import { encode } from 'base64-arraybuffer';
 import React, { Component } from 'react';
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import noAvatar from '../../assets/no-avatar.png';
 import { Users } from '../../Models';
 import { RealmService } from '../../realm/RealmService';
 import { Colors } from '../../Utils/Colors';
 
+const userRepo: RealmService<Users> = new RealmService<Users>('Users');
+
 interface HeaderLabelState {
-  user: Users;
+  user?: Users;
 }
 
 interface HeaderLabelProps {
@@ -23,42 +25,21 @@ type Props = HeaderLabelProps;
 export class HeaderLabel extends Component<Props, HeaderLabelState> {
   constructor(props: HeaderLabelProps) {
     super(props);
-    const userRepo: RealmService<Users> = new RealmService<Users>('Users');
     const user = userRepo.getAll()?.find((x) => x.isSystem);
-    if (user) {
-      this.state = { user: user };
-    }
+    this.state = { user: user };
   }
 
   render() {
-    const { user } = this.state;
+    const user = userRepo.getAll()?.find((x) => x.isSystem);
     return (
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          alignSelf: 'baseline',
-        }}>
+      <View style={styles.container}>
         {this.props.navigation.canGoBack() ? (
-          <Icon
-            name={'chevron-left'}
-            style={{
-              marginRight: 5,
-              width: 30,
-              alignContent: 'center',
-              justifyContent: 'center',
-              alignItems: 'center',
-              alignSelf: 'center',
-              textAlign: 'center',
-              textAlignVertical: 'center',
-              height: '100%',
-            }}
-            size={20}
-            color={Colors.white}
+          <TouchableOpacity
             onPress={() => {
               this.props.navigation.goBack();
-            }}
-          />
+            }}>
+            <Icon name={'chevron-left'} style={styles.backButton} size={20} color={Colors.white} />
+          </TouchableOpacity>
         ) : null}
         <TouchableOpacity
           onPress={() => {
@@ -72,33 +53,52 @@ export class HeaderLabel extends Component<Props, HeaderLabelState> {
             source={
               this.props.image
                 ? this.props.image
-                : user.Image
+                : user?.Image
                 ? {
                     uri: `data:image/png;base64,${encode(user.Image)}`,
                   }
                 : noAvatar
             }
-            style={{
-              height: 40,
-              width: 40,
-              borderRadius: 10,
-              borderWidth: 1,
-              borderColor: Colors.lighter,
-              marginRight: 10,
-            }}></Image>
+            style={styles.avatar}></Image>
         </TouchableOpacity>
-        <Text
-          style={{
-            fontSize: 24,
-            fontWeight: 'bold',
-            color: Colors.white,
-            textAlignVertical: 'center',
-          }}>
-          {this.props.name ? this.props.name : user.Name}
-        </Text>
+        <Text style={styles.title}>{this.props.name ? this.props.name : user?.Name}</Text>
       </View>
     );
   }
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'baseline',
+    marginLeft: 10,
+  },
+  backButton: {
+    marginRight: 10,
+    width: 30,
+    alignContent: 'center',
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    height: '100%',
+  },
+  avatar: {
+    height: 40,
+    width: 40,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.lighter,
+    marginRight: 10,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: Colors.white,
+    textAlignVertical: 'center',
+  },
+});
 
 export default HeaderLabel;

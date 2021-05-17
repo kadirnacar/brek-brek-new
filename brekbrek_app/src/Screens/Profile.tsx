@@ -14,9 +14,13 @@ import {
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import noAvatar from '../assets/no-avatar.png';
 import { FormModal } from '../Components/FormModal';
+import HeaderLabel from '../Components/HeaderLabel';
 import { Users } from '../Models/Channels';
 import { RealmService } from '../realm/RealmService';
 import { Colors } from '../Utils/Colors';
+import icon from '../../src/assets/icon.png';
+
+const userRepo: RealmService<Users> = new RealmService<Users>('Users');
 
 interface ProfileState {
   showImageSelector: boolean;
@@ -38,17 +42,28 @@ export class ProfileComp extends Component<Props, ProfileState> {
     this.setCameraSelector = this.setCameraSelector.bind(this);
     this.saveUser = this.saveUser.bind(this);
 
-    const userRepo: RealmService<Users> = new RealmService<Users>('Users');
-    const users = userRepo.getAll();
-    const user = users ? users[users.length - 1] : undefined;
     this.state = {
       showImageSelector: false,
-      user: user,
+      user: undefined,
     };
     this.touchableInactive = false;
   }
 
   touchableInactive: boolean;
+
+  componentDidMount() {
+    const user = userRepo.getAll()?.find((x) => x.isSystem);
+    this.setState({
+      user: user
+        ? { id: user?.id, isSystem: true, Image: user?.Image, Name: user?.Name }
+        : undefined,
+    });
+    this.props.navigation.setOptions({
+      headerLeft: (propss: any) => (
+        <HeaderLabel navigation={this.props.navigation} image={icon} name={'BrekBrek'} />
+      ),
+    });
+  }
 
   showImageModal() {
     this.setState({ showImageSelector: true });
@@ -89,7 +104,6 @@ export class ProfileComp extends Component<Props, ProfileState> {
   async saveUser() {
     if (!this.touchableInactive) {
       this.touchableInactive = true;
-      const userRepo: RealmService<Users> = new RealmService<Users>('Users');
 
       if (this.state.user) {
         await userRepo.update(this.state.user.id, this.state.user);
@@ -136,7 +150,7 @@ export class ProfileComp extends Component<Props, ProfileState> {
             value={this.state.user ? this.state.user.Name : ''}
             onChangeText={(text) => {
               const { user } = this.state;
-              
+
               if (user) {
                 user.Name = text;
                 this.setState({ user });
