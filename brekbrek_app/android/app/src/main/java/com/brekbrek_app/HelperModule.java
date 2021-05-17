@@ -72,10 +72,11 @@ public class HelperModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void startService(String channelName) {
+    public void startService(String channelName, String channelId) {
         mBackgroundCallerService = new BackgroundCallerService();
         mServiceIntent = new Intent(HelperModule.context, mBackgroundCallerService.getClass());
         mServiceIntent.putExtra("ChannelName", channelName);
+        mServiceIntent.putExtra("ChannelId", channelId);
         if (!isMyServiceRunning(mBackgroundCallerService.getClass())) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 HelperModule.context.startForegroundService(mServiceIntent);

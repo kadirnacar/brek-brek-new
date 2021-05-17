@@ -62,7 +62,7 @@ export class ChannelScreenComp extends Component<Props, ChannelState> {
       });
 
       this.setState({ channel: channel });
-      HelperModule.startService(channel.Name);
+      HelperModule.startService(channel.Name, channel.id.toHexString());
     }
   }
 
@@ -138,7 +138,7 @@ export class ChannelScreenComp extends Component<Props, ChannelState> {
             },
           ]}
           onPressItem={async (name) => {
-            if (name == 'ping') {
+            if (name == 'ping' && JavaJsModule.rtcConnection) {
               JavaJsModule.rtcConnection.sendMessage('ddd', { type: 'ping' });
             } else if (name === 'invite') {
               await this.shareChannel();

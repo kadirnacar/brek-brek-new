@@ -111,7 +111,6 @@ export class ChannelsScreenComp extends Component<Props, ChannelsState> {
   }
 
   render() {
-    console.log(this.props.route.params);
     return (
       <View style={styles.screen}>
         <FormModal

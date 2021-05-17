@@ -3,7 +3,7 @@ export interface IHelperModule {
   getServiceStatus: () => string;
   startRecorder: () => Promise<void>;
   stopRecorder: () => Promise<void>;
-  startService: (channelName: string) => Promise<void>;
+  startService: (channelName: string, channelId: string) => Promise<void>;
   stopService: () => Promise<void>;
   createPeer: (peerId: string) => Promise<void>;
   createAnswer: (peerId: string, type: string, description: string) => Promise<void>;

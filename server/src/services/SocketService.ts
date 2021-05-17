@@ -15,12 +15,10 @@ export class SocketService {
   }
 
   private static onConnection(socket: ws, request: http.IncomingMessage) {
-    const params = new Map(
-      new URL(request.url, `http://${request.headers.host}`).searchParams.entries()
-    );
-    const clientId: any = params.get('clientId');
+    const url = new URL(request.url, `http://${request.headers.host}`);
+    const params = new Map(url.searchParams.entries());
+    const clientId: any = url.pathname.substr(1, url.pathname.length - 1);
 
-console.log(request.url);
     if (!clientId) {
       socket.terminate();
       return;
@@ -50,7 +48,7 @@ console.log(request.url);
   private static onMessage(message: ws.Data) {
     try {
       const data = JSON.parse(message.toString());
-      console.log(data,'');
+      console.log(data);
       SocketService.sendTo(data.to, data);
     } catch (err) {
       console.error(err);

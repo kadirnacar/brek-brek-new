@@ -70,6 +70,7 @@ public class BackgroundCallerService extends Service {
         this.mVolumeKeyController = new VolumeKeyController(getApplicationContext());
         this.mVolumeKeyController.setActive(true);
         String channelName = intent.getExtras().getString("ChannelName");
+        String channelId = intent.getExtras().getString("ChannelId");
         if(!channelName.isEmpty()) {
             this.notificationBuilder.setContentText(channelName);
             this.notification = this.notificationBuilder.build();
@@ -79,6 +80,7 @@ public class BackgroundCallerService extends Service {
         HashMap param = new HashMap();
         param.put("type", "service");
         param.put("status", 1);
+        param.put("channelId", channelId);
         HelperModule.callScript(param);
         return START_STICKY;
     }

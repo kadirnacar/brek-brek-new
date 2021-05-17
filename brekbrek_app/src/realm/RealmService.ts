@@ -60,7 +60,6 @@ export class RealmService<T> {
         Object.getOwnPropertyNames(updates).forEach((x) => {
           const d = x as keyof T;
           if (d !== 'id') {
-            console.log('key', x, d, updates);
             model[x] = updates[d];
           }
         });

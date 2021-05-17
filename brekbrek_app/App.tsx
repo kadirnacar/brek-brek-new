@@ -76,7 +76,6 @@ export default class App extends Component<any, ApplicationState> {
       const dataString = await RNFS.readFile(url);
       const data = JSON.parse(dataString);
       const d = channelRepo.getById(new ObjectId(data.id));
-      console.log(d);
       if (!d) {
         await channelRepo.save({
           id: new ObjectId(data.id),
@@ -100,8 +99,7 @@ export default class App extends Component<any, ApplicationState> {
   render() {
     return (
       <MenuProvider skipInstanceCheck={true}>
-        <NavigationContainer
-          ref={this.navigationRef}>
+        <NavigationContainer ref={this.navigationRef}>
           <Stack.Navigator
             initialRouteName={this.state.isLogin ? 'Channels' : 'Register'}
             headerMode="screen"
