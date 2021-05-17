@@ -20,13 +20,15 @@ export class ContactsScreenComp extends Component<Props, any> {
 
     const userRepo: RealmService<Users> = new RealmService<Users>('Users');
     const users = userRepo.getAll();
-    const user = users[users.length - 1];
-    this.state = {
-      isDarkMode: true,
-      service: false,
-      record: false,
-      user: user,
-    };
+    if (users) {
+      const user = users[users.length - 1];
+      this.state = {
+        isDarkMode: true,
+        service: false,
+        record: false,
+        user: user,
+      };
+    }
   }
 
   async componentDidMount() {

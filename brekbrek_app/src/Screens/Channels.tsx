@@ -1,26 +1,29 @@
-import { NavigationProp } from '@react-navigation/core';
+import { NavigationProp, RouteProp } from '@react-navigation/core';
 import { ObjectId } from 'bson';
 import React, { Component } from 'react';
 import { FlatList, StyleSheet, TextInput, View } from 'react-native';
 import { FloatingAction } from 'react-native-floating-action';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import { Results } from 'realm';
 import ChannelForm from '../Components/ChannelForm';
 import ChannelItem from '../Components/ChannelItem';
 import FormModal from '../Components/FormModal';
 import { Channels, Users } from '../Models';
 import { RealmService } from '../realm/RealmService';
 import { Colors } from '../Utils/Colors';
+import { uuidv4 } from '../Utils/Tools';
 
 const channelRepo: RealmService<Channels> = new RealmService<Channels>('Channels');
 const userRepo: RealmService<Users> = new RealmService<Users>('Users');
 interface ChannelsState {
-  channels: Channels[];
+  channels?: Results<Channels>;
   showAddModal: boolean;
   newChannel: Channels;
 }
 
 interface ChannelsProps {
   navigation: NavigationProp<any>;
+  route: RouteProp<any, any>;
 }
 
 type Props = ChannelsProps;
@@ -37,7 +40,7 @@ export class ChannelsScreenComp extends Component<Props, ChannelsState> {
 
     const newChannel = new Channels();
     this.state = {
-      channels: [],
+      channels: undefined,
       showAddModal: false,
       newChannel: newChannel,
     };
@@ -46,12 +49,15 @@ export class ChannelsScreenComp extends Component<Props, ChannelsState> {
   addInputRef: React.RefObject<TextInput>;
 
   async componentDidMount() {
-    const channels = channelRepo.getAll().toJSON();
-    console.log(channels);
-    this.setState({
-      channels: channels || [],
-    });
+    const channels = channelRepo.getAll();
+    if (channels) {
+      this.setState({
+        channels: channels || [],
+      });
+    }
   }
+
+  componentDidUpdate(prevProp: Props, prevState: ChannelsState) {}
 
   cancelAddModal() {
     this.setState({ showAddModal: false });
@@ -63,16 +69,20 @@ export class ChannelsScreenComp extends Component<Props, ChannelsState> {
     if (!newChannel.id) {
       newChannel.id = new ObjectId();
       const users = userRepo.getAll();
-      const user = users[users.length - 1];
-      newChannel.Contacts?.push(user);
-      await channelRepo.save(newChannel);
+      if (users) {
+        const user = users[users.length - 1];
+        newChannel.refId = uuidv4();
+        newChannel.Contacts = [];
+        newChannel.Contacts?.push(user);
+        await channelRepo.save(newChannel);
+      }
     } else {
       await channelRepo.update(newChannel.id, newChannel);
     }
 
     this.setState({
       showAddModal: false,
-      channels: channelRepo.getAll().toJSON(),
+      channels: channelRepo.getAll(),
     });
   }
 
@@ -85,10 +95,14 @@ export class ChannelsScreenComp extends Component<Props, ChannelsState> {
 
   async handleItemAction(action: string, item: Channels) {
     if (action === 'delete') {
-      await channelRepo.delete(channelRepo.getById(item.id));
-      this.setState({
-        channels: channelRepo.getAll().toJSON(),
-      });
+      const d = channelRepo.getById(item.id);
+      if (d) {
+        await channelRepo.delete(d);
+        const data = channelRepo.getAll();
+        this.setState({
+          channels: data,
+        });
+      }
     } else if (action === 'edit') {
       this.setState({ newChannel: item, showAddModal: true }, () => {
         this.addInputRef.current?.focus();
@@ -97,6 +111,7 @@ export class ChannelsScreenComp extends Component<Props, ChannelsState> {
   }
 
   render() {
+    console.log(this.props.route.params);
     return (
       <View style={styles.screen}>
         <FormModal
@@ -111,20 +126,22 @@ export class ChannelsScreenComp extends Component<Props, ChannelsState> {
         </FormModal>
         <View style={styles.content}>
           <FlatList
-            data={this.state.channels}
+            data={this.state.channels ? this.state.channels.toJSON() : []}
             style={{ width: '100%' }}
             contentContainerStyle={{
               width: '100%',
             }}
             numColumns={3}
-            renderItem={(info) => (
-              <ChannelItem
-                navigation={this.props.navigation}
-                onAction={this.handleItemAction}
-                key={info.index}
-                channel={info.item}
-              />
-            )}
+            renderItem={(info) => {
+              return (
+                <ChannelItem
+                  navigation={this.props.navigation}
+                  onAction={this.handleItemAction}
+                  key={info.index}
+                  channel={info.item}
+                />
+              );
+            }}
           />
         </View>
         <FloatingAction

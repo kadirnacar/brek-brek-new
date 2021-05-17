@@ -20,7 +20,7 @@ import { Colors } from '../Utils/Colors';
 
 interface ProfileState {
   showImageSelector: boolean;
-  user: Users;
+  user?: Users;
 }
 
 interface ProfileProps {
@@ -40,13 +40,11 @@ export class ProfileComp extends Component<Props, ProfileState> {
 
     const userRepo: RealmService<Users> = new RealmService<Users>('Users');
     const users = userRepo.getAll();
-    const user = users[users.length - 1];
-
+    const user = users ? users[users.length - 1] : undefined;
     this.state = {
       showImageSelector: false,
       user: user,
     };
-
     this.touchableInactive = false;
   }
 
@@ -65,7 +63,7 @@ export class ProfileComp extends Component<Props, ProfileState> {
     launchImageLibrary(
       { mediaType: 'photo', includeBase64: true, maxHeight: 500, maxWidth: 500, quality: 0.7 },
       (response) => {
-        if (response.base64) {
+        if (response.base64 && this.state.user) {
           const { user } = this.state;
           user.Image = decode(response.base64);
           this.setState({ user });
@@ -79,7 +77,7 @@ export class ProfileComp extends Component<Props, ProfileState> {
     launchCamera(
       { mediaType: 'photo', includeBase64: true, maxHeight: 500, maxWidth: 500, quality: 0.7 },
       async (response) => {
-        if (response.base64) {
+        if (response.base64 && this.state.user) {
           const { user } = this.state;
           user.Image = decode(response.base64);
           this.setState({ user });
@@ -92,7 +90,10 @@ export class ProfileComp extends Component<Props, ProfileState> {
     if (!this.touchableInactive) {
       this.touchableInactive = true;
       const userRepo: RealmService<Users> = new RealmService<Users>('Users');
-      await userRepo.update(this.state.user.id, this.state.user);
+
+      if (this.state.user) {
+        await userRepo.update(this.state.user.id, this.state.user);
+      }
       ToastAndroid.showWithGravity('Bilgileriniz Kaydedilmiştir', 1000, ToastAndroid.TOP);
       this.touchableInactive = false;
     }
@@ -135,8 +136,11 @@ export class ProfileComp extends Component<Props, ProfileState> {
             value={this.state.user ? this.state.user.Name : ''}
             onChangeText={(text) => {
               const { user } = this.state;
-              user.Name = text;
-              this.setState({ user });
+              
+              if (user) {
+                user.Name = text;
+                this.setState({ user });
+              }
             }}
             style={styles.input}
           />

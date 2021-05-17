@@ -36,21 +36,21 @@ export class RealmService<T> {
 
   private static realm: Realm;
   private modelType;
-  getById(id: any): T {
+  getById(id: any): T | undefined {
     if (RealmService.realm) {
       const item: T = <T>RealmService.realm.objectForPrimaryKey<T>(this.modelType, id);
       return item;
     } else {
-      return null;
+      return undefined;
     }
   }
 
-  getAll(): Realm.Results<T> {
+  getAll(): Realm.Results<T> | undefined {
     if (RealmService.realm) {
       const list = RealmService.realm.objects<T>(this.modelType);
       return list;
     } else {
-      return null;
+      return undefined;
     }
   }
   update(id: any, updates: Partial<T>): Promise<T> {
@@ -60,6 +60,7 @@ export class RealmService<T> {
         Object.getOwnPropertyNames(updates).forEach((x) => {
           const d = x as keyof T;
           if (d !== 'id') {
+            console.log('key', x, d, updates);
             model[x] = updates[d];
           }
         });
@@ -80,7 +81,7 @@ export class RealmService<T> {
     return new Promise((resolve) => {
       RealmService.realm.write(() => {
         RealmService.realm.delete(model);
-        resolve(null);
+        resolve(undefined);
       });
     });
   }

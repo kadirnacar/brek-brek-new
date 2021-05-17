@@ -1,8 +1,11 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { decode } from 'base64-arraybuffer';
+import { ObjectId } from 'bson';
 import React, { Component } from 'react';
-import { Image } from 'react-native';
+import { AppState, AppStateStatus, Image, Linking, ToastAndroid } from 'react-native';
+import * as RNFS from 'react-native-fs';
 import 'react-native-gesture-handler';
 import 'react-native-get-random-values';
 import { MenuProvider } from 'react-native-popup-menu';
@@ -11,7 +14,7 @@ import channelIcon from './src/assets/channel.png';
 import channelGrayIcon from './src/assets/channelgray.png';
 import HeaderLabel from './src/Components/HeaderLabel';
 import HeaderMenu from './src/Components/HeaderMenu';
-import { Users } from './src/Models';
+import { Channels, Users } from './src/Models';
 import { RealmService } from './src/realm/RealmService';
 import { ChannelScreenComp } from './src/Screens/Channel';
 import { ChannelsScreenComp } from './src/Screens/Channels';
@@ -27,24 +30,94 @@ if (!BatchedBridge.getCallableModule('JavaJsModule')) {
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-interface AppState {
+interface ApplicationState {
   isLogin: boolean;
 }
 
 const userRepo: RealmService<Users> = new RealmService<Users>('Users');
+const channelRepo: RealmService<Channels> = new RealmService<Channels>('Channels');
 
-export default class App extends Component<any, AppState> {
+export default class App extends Component<any, ApplicationState> {
   constructor(props: any) {
     super(props);
+    this.navigationRef = React.createRef<NavigationContainerRef>();
+    this.importChannelData = this.importChannelData.bind(this);
+    const user = userRepo.getAll()?.find((x) => x.isSystem);
     this.state = {
-      isLogin: userRepo.getAll().length > 0,
+      isLogin: !!user,
     };
+    AppState.addEventListener('change', this.onStateChange.bind(this));
+    Linking.addEventListener('url', async (event: { url: string }) => {
+      if (this.linkinUrl !== event.url) {
+        this.linkinUrl = event.url;
+        await this.importChannelData(this.linkinUrl);
+      }
+    });
   }
 
+  linkinUrl: string;
+
+  componentWillUnmount() {
+    AppState.removeEventListener('change', this.onStateChange);
+  }
+
+  async onStateChange(state: AppStateStatus) {
+    if (state == 'active') {
+      const url = await Linking.getInitialURL();
+      if (url && this.linkinUrl !== url) {
+        this.linkinUrl = url ? url : '';
+        await this.importChannelData(this.linkinUrl);
+      }
+    }
+  }
+
+  async importChannelData(url: string) {
+    try {
+      const dataString = await RNFS.readFile(url);
+      const data = JSON.parse(dataString);
+      const d = channelRepo.getById(new ObjectId(data.id));
+      console.log(d);
+      if (!d) {
+        await channelRepo.save({
+          id: new ObjectId(data.id),
+          Name: data.Name,
+          Image: data.Image ? decode(data.Image) : undefined,
+          refId: data.refId,
+        });
+        this.setState({});
+        this.navigationRef.current?.navigate('Channels', { refresh: new Date() });
+        ToastAndroid.show('Kanal bilgisi başarıyla yüklendiii', 1000);
+      }
+    } catch (err) {
+      console.error(err);
+      ToastAndroid.show('Kanal bilgisi yüklenemedi', 1000);
+    }
+    this.linkinUrl = '';
+  }
+
+  navigationRef: React.RefObject<NavigationContainerRef>;
+
   render() {
+    const linking = {
+      prefixes: ['.*\\.brekbrek'],
+      config: {
+        screens: {
+          Channels: 'refresh',
+        },
+      },
+    };
     return (
       <MenuProvider skipInstanceCheck={true}>
-        <NavigationContainer>
+        <NavigationContainer
+          linking={{
+            prefixes: ['.*\\.brekbrek', 'content://'],
+            config: {
+              screens: {
+                Channels: 'refresh',
+              },
+            },
+          }}
+          ref={this.navigationRef}>
           <Stack.Navigator
             initialRouteName={this.state.isLogin ? 'Channels' : 'Register'}
             headerMode="screen"
@@ -114,8 +187,9 @@ export default class App extends Component<any, AppState> {
               component={RegisterComp}
               listeners={{
                 beforeRemove: () => {
+                  const user = userRepo.getAll()?.find((x) => x.isSystem);
                   this.setState({
-                    isLogin: userRepo.getAll().length > 0,
+                    isLogin: !!user,
                   });
                 },
               }}

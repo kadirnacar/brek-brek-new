@@ -86,6 +86,7 @@ export class RegisterComp extends Component<Props, RegisterState> {
       const userRepo: RealmService<Users> = new RealmService<Users>('Users');
       await userRepo.save({
         id: new ObjectId(),
+        isSystem: true,
         Name: this.state.selectedNickname ? this.state.selectedNickname : '',
         Image: this.state.selectedImage ? decode(this.state.selectedImage) : undefined,
       });

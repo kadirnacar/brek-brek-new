@@ -3,7 +3,7 @@ import { ObjectId } from 'bson';
 import React, { Component } from 'react';
 import { FlatList, NativeModules, StyleSheet, View } from 'react-native';
 import HeaderLabel from '../Components/HeaderLabel';
-import { Channels } from '../Models';
+import { Channels, Users } from '../Models';
 import { RealmService } from '../realm/RealmService';
 import { Colors } from '../Utils/Colors';
 import { IHelperModule } from '../Utils/IHelperModule';
@@ -44,31 +44,33 @@ export class ChannelScreenComp extends Component<Props, ChannelState> {
     const params = this.props.route.params ? this.props.route.params : {};
 
     const channel = channelRepo.getById(new ObjectId(params.id));
-    this.props.navigation.setOptions({
-      headerLeft: (propss: any) => (
-        <HeaderLabel
-          navigation={this.props.navigation}
-          name={channel.Name}
-          image={
-            channel.Image
-              ? {
-                  uri: `data:image/png;base64,${encode(channel.Image)}`,
-                }
-              : channelGrayIcon
-          }
-        />
-      ),
-    });
+    if (channel) {
+      this.props.navigation.setOptions({
+        headerLeft: (propss: any) => (
+          <HeaderLabel
+            navigation={this.props.navigation}
+            name={channel.Name}
+            image={
+              channel.Image
+                ? {
+                    uri: `data:image/png;base64,${encode(channel.Image)}`,
+                  }
+                : channelGrayIcon
+            }
+          />
+        ),
+      });
 
-    this.setState({ channel: channel });
-    HelperModule.startService(channel.Name);
+      this.setState({ channel: channel });
+      HelperModule.startService(channel.Name);
+    }
   }
 
   componentWillUnmount() {
     HelperModule.stopService();
   }
 
-  async handleItemAction(action: string, item: Channels) {
+  async handleItemAction(action: string, item: Users) {
     if (action === 'delete') {
     } else if (action === 'edit') {
     }
@@ -77,7 +79,13 @@ export class ChannelScreenComp extends Component<Props, ChannelState> {
   async shareChannel() {
     RNFS.writeFile(
       `file:///${RNFS.CachesDirectoryPath}/channel.brekbrek`,
-      JSON.stringify({ id: this.state.channel?.id, Name: this.state.channel?.Name })
+      JSON.stringify({
+        id: this.state.channel?.id.toHexString(),
+        Name: this.state.channel?.Name,
+        refId: this.state.channel?.refId,
+        Image:
+          this.state.channel && this.state.channel.Image ? encode(this.state.channel.Image) : '',
+      })
     );
     const result = await Share.open({
       title: 'Kanal Daveti',

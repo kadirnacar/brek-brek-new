@@ -31,21 +31,46 @@ type Props = ChannelItemProps & MenuContextProps;
 class ChannelItem extends Component<Props, ChannelItemState> {
   constructor(props: Props) {
     super(props);
+    this.onMenuBackdropPress = this.onMenuBackdropPress.bind(this);
+    this.onMenuClose = this.onMenuClose.bind(this);
+    this.onMenuSelect = this.onMenuSelect.bind(this);
+    this.onNavigateLongPress = this.onNavigateLongPress.bind(this);
+    this.onNavigatePress = this.onNavigatePress.bind(this);
+
     this.state = {
       isMenuOpen: false,
     };
   }
 
+  onNavigatePress() {
+    this.props.navigation.navigate('Channel', { id: this.props.channel.id.toHexString() });
+  }
+
+  onNavigateLongPress() {
+    this.setState({ isMenuOpen: true });
+  }
+
+  onMenuBackdropPress() {
+    this.setState({ isMenuOpen: false });
+  }
+
+  onMenuSelect(val: string) {
+    this.setState({ isMenuOpen: false }, () => {
+      if (this.props.onAction) {
+        this.props.onAction(val, this.props.channel);
+      }
+    });
+  }
+
+  onMenuClose() {
+    this.setState({ isMenuOpen: false });
+  }
   render() {
-    return (
+    return this.props.channel ? (
       <TouchableOpacity
         style={styles.listItem}
-        onPress={() => {
-          this.props.navigation.navigate('Channel', { id:this.props.channel.id.toHexString() });
-        }}
-        onLongPress={() => {
-          this.setState({ isMenuOpen: true });
-        }}>
+        onPress={this.onNavigatePress}
+        onLongPress={this.onNavigateLongPress}>
         <View
           style={{
             width: width / 3 - 30,
@@ -62,18 +87,9 @@ class ChannelItem extends Component<Props, ChannelItemState> {
           }}>
           <Menu
             opened={this.state.isMenuOpen}
-            onBackdropPress={() => {
-              this.setState({ isMenuOpen: false });
-            }}
-            onSelect={(val) => {
-              this.setState({ isMenuOpen: false });
-              if (this.props.onAction) {
-                this.props.onAction(val, this.props.channel);
-              }
-            }}
-            onClose={() => {
-              this.setState({ isMenuOpen: false });
-            }}>
+            onBackdropPress={this.onMenuBackdropPress}
+            onSelect={this.onMenuSelect}
+            onClose={this.onMenuClose}>
             <MenuTrigger disabled={false}></MenuTrigger>
             <MenuOptions customStyles={optionsStyles}>
               <MenuOption text="Düzenle" value={'edit'} />
@@ -101,7 +117,7 @@ class ChannelItem extends Component<Props, ChannelItemState> {
         </View>
         <Text style={styles.listItemLabel}>{this.props.channel.Name}</Text>
       </TouchableOpacity>
-    );
+    ) : null;
   }
 }
 

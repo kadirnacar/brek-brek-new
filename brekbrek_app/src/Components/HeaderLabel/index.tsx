@@ -24,9 +24,10 @@ export class HeaderLabel extends Component<Props, HeaderLabelState> {
   constructor(props: HeaderLabelProps) {
     super(props);
     const userRepo: RealmService<Users> = new RealmService<Users>('Users');
-    const users = userRepo.getAll();
-    const user = users[users.length - 1];
-    this.state = { user: user };
+    const user = userRepo.getAll()?.find((x) => x.isSystem);
+    if (user) {
+      this.state = { user: user };
+    }
   }
 
   render() {

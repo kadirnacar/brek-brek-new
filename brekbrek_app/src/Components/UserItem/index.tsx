@@ -1,9 +1,7 @@
+import { NavigationProp } from '@react-navigation/core';
 import { encode } from 'base64-arraybuffer';
 import React, { Component } from 'react';
 import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import channelGrayIcon from '../../../src/assets/channelgray.png';
-import { Channels, Users } from '../../Models';
-import { Colors } from '../../Utils/Colors';
 import {
   Menu,
   MenuContextProps,
@@ -12,7 +10,9 @@ import {
   MenuTrigger,
   withMenuContext,
 } from 'react-native-popup-menu';
-import { NavigationProp } from '@react-navigation/core';
+import channelGrayIcon from '../../../src/assets/channelgray.png';
+import { Users } from '../../Models';
+import { Colors } from '../../Utils/Colors';
 
 const { height, width } = Dimensions.get('window');
 
