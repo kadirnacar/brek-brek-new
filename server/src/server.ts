@@ -1,4 +1,4 @@
-import { AuthRouter, DataRouter, FileRouter, SettingsRouter, UserRouter } from '@routes';
+import { InviteRouter } from '@routes';
 import { logger } from '@services';
 import * as bodyParser from 'body-parser';
 import * as express from 'express';
@@ -33,7 +33,7 @@ class App {
     this.express.use(express.static('dist/uploads'));
     this.express.use(express.static('/uploads'));
 
-    this.express.use(/\/((?!api).)*/, function (req, res) {
+    this.express.use(/\/((?!api|invite).)*/, function (req, res) {
       res.send('App Server');
       // res.sendFile('index.html', { root: path.resolve(".") }, function (err) {
       //   if (err) {
@@ -43,11 +43,11 @@ class App {
     });
 
     this.express.use('/', router);
-    this.express.use('/api/auth', new AuthRouter().router);
-    this.express.use('/api/user', new UserRouter().router);
-    this.express.use('/api/data', new DataRouter().router);
-    this.express.use('/api/file', new FileRouter().router);
-    this.express.use('/api/settings', new SettingsRouter().router);
+    // this.express.use('/api/auth', new AuthRouter().router);
+    // this.express.use('/api/user', new UserRouter().router);
+    // this.express.use('/api/data', new DataRouter().router);
+    // this.express.use('/api/file', new FileRouter().router);
+    this.express.use('/invite', new InviteRouter().router);
 
     this.express.use((err, req, res, next) => {
       logger.error(err);

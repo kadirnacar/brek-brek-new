@@ -1,8 +1,7 @@
-export { MainCarouselImages, Settings, MailSettings, MailTemplate } from './Settings';
-export { User } from './User';
+export { Invite } from './Invite';
 
-import { User } from './User';
+import { Invite } from './Invite';
 
 export const Models = {
-  User,
+  Invite,
 };

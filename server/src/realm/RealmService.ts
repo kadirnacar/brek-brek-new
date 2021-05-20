@@ -1,4 +1,4 @@
-import { Models } from '@models';
+import { Models } from '../models';
 import Realm from 'realm';
 import 'reflect-metadata';
 
@@ -7,41 +7,49 @@ export class RealmService<T> {
     this.modelType = entityName;
     if (!RealmService.realm) {
       try {
+
         RealmService.realm = new Realm({
-          path: 'data/database.realm',
-          schemaVersion: 1,
+          path: `data/database.realm`,
+          schemaVersion: 3,
           schema: Object.keys(Models).map((x) => {
-            return Reflect.get(Models[x], 'schema');
+            const d = x as keyof typeof Models;
+            return Reflect.get(Models[d], 'schema');
           }),
         });
-      } catch (ex) {}
+      } catch (ex) {
+        throw ex;
+      }
     }
   }
 
   private static realm: Realm;
   private modelType;
-  getById(id: any) {
+  getById(id: any): T | undefined {
     if (RealmService.realm) {
-      const item: T = RealmService.realm.objectForPrimaryKey<T>(this.modelType, id);
+      const item: T = <T>RealmService.realm.objectForPrimaryKey<T>(this.modelType, id);
       return item;
     } else {
-      return null;
+      return undefined;
     }
   }
 
-  getAll(): Realm.Results<T> {
+  getAll(): Realm.Results<T> | undefined {
     if (RealmService.realm) {
       const list = RealmService.realm.objects<T>(this.modelType);
       return list;
     } else {
-      return null;
+      return undefined;
     }
   }
-  update(model: T, updates: Partial<T>): Promise<T> {
+  update(id: any, updates: Partial<T>): Promise<T> {
     return new Promise((resolve) => {
+      const model: T | any = this.getById(id);
       RealmService.realm.write(() => {
         Object.getOwnPropertyNames(updates).forEach((x) => {
-          model[x] = updates[x];
+          const d = x as keyof T;
+          if (d !== 'id') {
+            model[x] = updates[d];
+          }
         });
         resolve(model);
       });
@@ -56,9 +64,12 @@ export class RealmService<T> {
       });
     });
   }
-  delete(model: T | Realm.Results<T> | T[]) {
-    RealmService.realm.write(() => {
-      RealmService.realm.delete(model);
+  delete(model: T): Promise<void> {
+    return new Promise((resolve) => {
+      RealmService.realm.write(() => {
+        RealmService.realm.delete(model);
+        resolve(undefined);
+      });
     });
   }
 }

@@ -7,6 +7,10 @@ import { Users } from '../Models';
 import { RealmService } from '../realm/RealmService';
 import { Colors } from '../Utils/Colors';
 import { IHelperModule } from '../Utils/IHelperModule';
+import Share from 'react-native-share';
+import * as RNFS from 'react-native-fs';
+import { ObjectId } from 'bson';
+import { config } from '../Utils/config';
 
 const HelperModule: IHelperModule = NativeModules.HelperModule;
 const userRepo: RealmService<Users> = new RealmService<Users>('Users');
@@ -23,10 +27,35 @@ type Props = ContactsProps;
 export class ContactsScreenComp extends Component<Props, ContactState> {
   constructor(props: Props) {
     super(props);
+    this.shareInvite = this.shareInvite.bind(this);
 
     this.state = {
       contacts: undefined,
     };
+  }
+
+  async shareInvite() {
+    const inviteId = new ObjectId();
+    const user = userRepo.getAll()?.find((x) => x.isSystem);
+    // const inviteUrl = `${config.serverUrl}/invite/${user?.id.toHexString()}/${
+    //   user?.refId
+    // }/${inviteId.toHexString()}.brekbrek`;
+
+    const inviteUrl = `http://brekbrek.kadirnacar.com/invite/${user?.id.toHexString()}/${
+      user?.refId
+    }/${inviteId.toHexString()}.brekbrek`;
+
+    try {
+      const result = await Share.open({
+        title: 'Kanal Daveti',
+        message: 'Davet Et',
+        subject: 'Davet',
+        type: 'url',
+        filename: 'davet',
+        url: inviteUrl,
+      });
+      await fetch(inviteUrl);
+    } catch {}
   }
 
   async componentDidMount() {
@@ -67,9 +96,9 @@ export class ContactsScreenComp extends Component<Props, ContactState> {
               color: Colors.primary,
             },
           ]}
-          onPressItem={(name) => {
+          onPressItem={async (name) => {
             if (name === 'invite') {
-              // this.openAddModal();
+              await this.shareInvite();
             }
           }}
         />

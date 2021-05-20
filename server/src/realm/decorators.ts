@@ -30,8 +30,8 @@ export function Column(
     | 'list'
     | 'linkingObjects'
     | ObjectSchemaProperty
-): PropertyDecorator {
-  return function (object: Object, propertyName: string | symbol) {
+) {
+  return function (object: any, propertyName: string | symbol) {
     let metadata = Reflect.get(object.constructor, 'schema');
     if (!metadata) {
       metadata = { properties: {} };
@@ -40,9 +40,12 @@ export function Column(
     if (!metadata.properties) {
       metadata.properties = {};
     }
-    metadata.properties[propertyName] = {
-      type: typeName.name == 'Number' ? 'int' : typeName.name.toLowerCase(),
-    };
+
+    if (typeName) {
+      metadata.properties[propertyName] = {
+        type: typeName.name == 'Number' ? 'int' : typeName.name.toLowerCase(),
+      };
+    }
     if (config) {
       metadata.properties[propertyName] = config;
     }
@@ -50,12 +53,35 @@ export function Column(
   };
 }
 
-export function PrimaryKey(): PropertyDecorator {
+export function PrimaryKey(config?:
+  | 'int'
+  | 'float'
+  | 'double'
+  | 'decimal128'
+  | 'objectId'
+  | 'string'
+  | 'date'
+  | ObjectSchemaProperty) {
   return function (object: Object, propertyName: string | symbol) {
     let metadata = Reflect.get(object.constructor, 'schema');
     if (!metadata) {
       metadata = { properties: {} };
     }
+
+    let typeName = Reflect.getMetadata('design:type', object, propertyName);
+    if (!metadata.properties) {
+      metadata.properties = {};
+    }
+
+    if (typeName) {
+      metadata.properties[propertyName] = {
+        type: typeName.name == 'Number' ? 'int' : typeName.name.toLowerCase(),
+      };
+    }
+    if (config) {
+      metadata.properties[propertyName] = config;
+    }
+
     metadata.primaryKey = propertyName;
     Reflect.set(object.constructor, 'schema', metadata);
   };

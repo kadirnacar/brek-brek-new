@@ -1,4 +1,3 @@
-import { Models } from '@models';
 import { Services } from '@services';
 import { Request, Response, Router } from 'express';
 import { checkJwt } from '../middlewares/checkJwt';

@@ -17,6 +17,7 @@ import { FormModal } from '../Components/FormModal';
 import { Users } from '../Models/Channels';
 import { RealmService } from '../realm/RealmService';
 import { Colors } from '../Utils/Colors';
+import { uuidv4 } from '../Utils/Tools';
 
 interface RegisterState {
   showImageSelector: boolean;
@@ -86,6 +87,7 @@ export class RegisterComp extends Component<Props, RegisterState> {
       const userRepo: RealmService<Users> = new RealmService<Users>('Users');
       await userRepo.save({
         id: new ObjectId(),
+        refId: uuidv4(),
         isSystem: true,
         Name: this.state.selectedNickname ? this.state.selectedNickname : '',
         Image: this.state.selectedImage ? decode(this.state.selectedImage) : undefined,

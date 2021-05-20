@@ -7,6 +7,9 @@ export class Users {
   id: ObjectId;
 
   @Column('string')
+  refId?: string;
+
+  @Column('string')
   Name?: string;
 
   @Column({ type: 'bool', default: false })

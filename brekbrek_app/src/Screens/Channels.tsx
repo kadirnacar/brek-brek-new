@@ -68,9 +68,8 @@ export class ChannelsScreenComp extends Component<Props, ChannelsState> {
 
     if (!newChannel.id) {
       newChannel.id = new ObjectId();
-      const users = userRepo.getAll();
-      if (users) {
-        const user = users[users.length - 1];
+      const user = userRepo.getAll()?.find((x) => x.isSystem);
+      if (user) {
         newChannel.refId = uuidv4();
         newChannel.Contacts = [];
         newChannel.Contacts?.push(user);
