@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">BrekBrek</string>
+    <string name="remote_service_started">Remote service has started</string>
+    <string name="remote_service_stopped">Remote service has stopped</string>
+    <string name="remote_service_label">Sample Remote Service</string>
+    <string name="local_service_label">Sample Local Service</string>
 </resources>

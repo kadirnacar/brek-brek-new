@@ -12,6 +12,7 @@ export class InviteRouter {
     this.init();
   }
   inviteRepo: RealmService<Invite>;
+
   public async getList(req: Request, res: Response, next) {
     try {
       const data = req.params;
@@ -39,8 +40,18 @@ export class InviteRouter {
     }
   }
 
+  public async getTest(req: Request, res: Response, next) {
+    try {
+      console.log("test")
+      res.status(200).send({});
+    } catch (err) {
+      next(err);
+    }
+  }
+
   async init() {
     this.inviteRepo = new RealmService<Invite>('Invite');
     this.router.get('/:userId/:refId/:inviteId', this.getList.bind(this));
+    this.router.get('/test', this.getTest.bind(this));
   }
 }
