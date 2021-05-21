@@ -116,10 +116,10 @@ export class ContactsScreenComp extends Component<Props, ContactState> {
 
   render() {
     const data = this.state.contacts ? this.state.contacts : [];
-    data.push(...data);
-    data.push(...data);
-    data.push(...data);
-    data.push(...data);
+    // data.push(...data);
+    // data.push(...data);
+    // data.push(...data);
+    // data.push(...data);
     return (
       <View style={styles.screen}>
         <View style={styles.content}>

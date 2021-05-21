@@ -26,7 +26,8 @@ export class SocketService {
   private static onConnection(socket: ws, request: http.IncomingMessage) {
     const url = new URL(request.url, `http://${request.headers.host}`);
     const params = new Map(url.searchParams.entries());
-    const clientId: any = url.pathname.substr(1, url.pathname.length - 1);
+    const clientId: any = undefined;
+    // const clientId: any = url.pathname.substr(1, url.pathname.length - 1);
 
     if (!clientId) {
       socket.terminate();
@@ -45,13 +46,13 @@ export class SocketService {
 
     SocketService.sendTo(clientId, { type: 'connection', clientId, success: true });
 
-    SocketService.sendAll({
-      type: 'clients',
-      data: Object.keys(SocketService.clients).map((x) => ({
-        type: SocketService.clients[x]['type'],
-        clientId: x,
-      })),
-    });
+    // SocketService.sendAll({
+    //   type: 'clients',
+    //   data: Object.keys(SocketService.clients).map((x) => ({
+    //     type: SocketService.clients[x]['type'],
+    //     clientId: x,
+    //   })),
+    // });
   }
 
   private static onMessage(message: ws.Data) {
@@ -67,13 +68,13 @@ export class SocketService {
   private static onClose(clientId, code, reason) {
     if (clientId) {
       delete SocketService.clients[clientId];
-      SocketService.sendAll({
-        type: 'clients',
-        data: Object.keys(SocketService.clients).map((x) => ({
-          type: SocketService.clients[x]['type'],
-          clientId: x,
-        })),
-      });
+      // SocketService.sendAll({
+      //   type: 'clients',
+      //   data: Object.keys(SocketService.clients).map((x) => ({
+      //     type: SocketService.clients[x]['type'],
+      //     clientId: x,
+      //   })),
+      // });
     }
   }
 
@@ -93,11 +94,11 @@ export class SocketService {
     }
   }
 
-  public static sendAll(data: any, exclude: string[] = []) {
-    Object.keys(SocketService.clients)
-      .filter((x) => exclude.indexOf(x) == -1)
-      .forEach((x) => {
-        SocketService.sendTo(x, data);
-      });
-  }
+  // public static sendAll(data: any, exclude: string[] = []) {
+  //   Object.keys(SocketService.clients)
+  //     .filter((x) => exclude.indexOf(x) == -1)
+  //     .forEach((x) => {
+  //       SocketService.sendTo(x, data);
+  //     });
+  // }
 }
