@@ -38,5 +38,12 @@ class UserService {
   public async update(data: Partial<Users>) {
     return await this.userRepo.update(data.id, data);
   }
+
+  public async delete(id: string | ObjectId) {
+    const data = this.userRepo.getById(new ObjectId(id));
+    if (data) {
+      await this.userRepo.delete(data);
+    }
+  }
 }
 export default UserService.getInstance();

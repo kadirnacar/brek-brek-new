@@ -5,6 +5,7 @@ import { FlatList, NativeModules, StyleSheet, Text, ToastAndroid, View } from 'r
 import { FloatingAction } from 'react-native-floating-action';
 import Share from 'react-native-share';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import ContactItem from '../Components/ContactItem';
 import { Users } from '../Models';
 import { InviteService, UserService } from '../Services';
 import { Colors } from '../Utils/Colors';
@@ -24,10 +25,21 @@ export class ContactsScreenComp extends Component<Props, ContactState> {
   constructor(props: Props) {
     super(props);
     this.shareInvite = this.shareInvite.bind(this);
+    this.handleItemAction = this.handleItemAction.bind(this);
 
     this.state = {
       contacts: undefined,
     };
+  }
+
+  async handleItemAction(action: string, item: Users) {
+    if (action === 'delete') {
+      await UserService.delete(item.id);
+      const data = UserService.getContacts();
+      this.setState({
+        contacts: data,
+      });
+    }
   }
 
   async shareInvite() {
@@ -115,9 +127,12 @@ export class ContactsScreenComp extends Component<Props, ContactState> {
             numColumns={3}
             renderItem={(info) => {
               return (
-                <View>
-                  <Text>{info.item.Name}</Text>
-                </View>
+                <ContactItem
+                  navigation={this.props.navigation}
+                  onAction={this.handleItemAction}
+                  key={info.index}
+                  contact={info.item}
+                />
               );
             }}
           />
