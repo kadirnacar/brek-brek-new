@@ -19,8 +19,7 @@ import { Users } from '../Models/Channels';
 import { RealmService } from '../realm/RealmService';
 import { Colors } from '../Utils/Colors';
 import icon from '../../src/assets/icon.png';
-
-const userRepo: RealmService<Users> = new RealmService<Users>('Users');
+import { UserService } from '../Services';
 
 interface ProfileState {
   showImageSelector: boolean;
@@ -52,7 +51,7 @@ export class ProfileComp extends Component<Props, ProfileState> {
   touchableInactive: boolean;
 
   componentDidMount() {
-    const user = userRepo.getAll()?.find((x) => x.isSystem);
+    const user = UserService.getSystemUser();
     this.setState({
       user: user
         ? { id: user?.id, isSystem: true, Image: user?.Image, Name: user?.Name }
@@ -106,7 +105,7 @@ export class ProfileComp extends Component<Props, ProfileState> {
       this.touchableInactive = true;
 
       if (this.state.user) {
-        await userRepo.update(this.state.user.id, this.state.user);
+        await UserService.update(this.state.user);
       }
       ToastAndroid.showWithGravity('Bilgileriniz Kaydedilmiştir', 1000, ToastAndroid.TOP);
       this.touchableInactive = false;

@@ -12,12 +12,12 @@ import HeaderLabel from '../Components/HeaderLabel';
 import UserItem from '../Components/UserItem';
 import { Channels, Users } from '../Models';
 import { RealmService } from '../realm/RealmService';
+import { ChannelService } from '../Services';
 import { Colors } from '../Utils/Colors';
 import { IHelperModule } from '../Utils/IHelperModule';
 import JavaJsModule from '../Utils/JavaJsModule';
 
 const HelperModule: IHelperModule = NativeModules.HelperModule;
-const channelRepo: RealmService<Channels> = new RealmService<Channels>('Channels');
 interface ChannelState {
   channel?: Channels;
 }
@@ -42,7 +42,7 @@ export class ChannelScreenComp extends Component<Props, ChannelState> {
   async componentDidMount() {
     const params = this.props.route.params ? this.props.route.params : {};
 
-    const channel = channelRepo.getById(new ObjectId(params.id));
+    const channel = ChannelService.get(params.id);
     if (channel) {
       this.props.navigation.setOptions({
         headerLeft: (propss: any) => (

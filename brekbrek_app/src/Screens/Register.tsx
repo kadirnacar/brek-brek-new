@@ -16,6 +16,7 @@ import noAvatar from '../assets/no-avatar.png';
 import { FormModal } from '../Components/FormModal';
 import { Users } from '../Models/Channels';
 import { RealmService } from '../realm/RealmService';
+import { UserService } from '../Services';
 import { Colors } from '../Utils/Colors';
 import { uuidv4 } from '../Utils/Tools';
 
@@ -84,11 +85,8 @@ export class RegisterComp extends Component<Props, RegisterState> {
   async saveUser() {
     if (!this.touchableInactive) {
       this.touchableInactive = true;
-      const userRepo: RealmService<Users> = new RealmService<Users>('Users');
-      await userRepo.save({
-        id: new ObjectId(),
+      await UserService.save({
         refId: uuidv4(),
-        isSystem: true,
         Name: this.state.selectedNickname ? this.state.selectedNickname : '',
         Image: this.state.selectedImage ? decode(this.state.selectedImage) : undefined,
       });

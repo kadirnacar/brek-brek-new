@@ -10,11 +10,10 @@ import ChannelItem from '../Components/ChannelItem';
 import FormModal from '../Components/FormModal';
 import { Channels, Users } from '../Models';
 import { RealmService } from '../realm/RealmService';
+import { ChannelService, UserService } from '../Services';
 import { Colors } from '../Utils/Colors';
 import { uuidv4 } from '../Utils/Tools';
 
-const channelRepo: RealmService<Channels> = new RealmService<Channels>('Channels');
-const userRepo: RealmService<Users> = new RealmService<Users>('Users');
 interface ChannelsState {
   channels?: Results<Channels>;
   showAddModal: boolean;
@@ -49,7 +48,7 @@ export class ChannelsScreenComp extends Component<Props, ChannelsState> {
   addInputRef: React.RefObject<TextInput>;
 
   async componentDidMount() {
-    const channels = channelRepo.getAll();
+    const channels = ChannelService.getChannels();
     if (channels) {
       this.setState({
         channels: channels || [],
@@ -68,20 +67,20 @@ export class ChannelsScreenComp extends Component<Props, ChannelsState> {
 
     if (!newChannel.id) {
       newChannel.id = new ObjectId();
-      const user = userRepo.getAll()?.find((x) => x.isSystem);
+      const user = UserService.getSystemUser();
       if (user) {
         newChannel.refId = uuidv4();
         newChannel.Contacts = [];
         newChannel.Contacts?.push(user);
-        await channelRepo.save(newChannel);
+        await ChannelService.save(newChannel);
       }
     } else {
-      await channelRepo.update(newChannel.id, newChannel);
+      await ChannelService.update(newChannel);
     }
 
     this.setState({
       showAddModal: false,
-      channels: channelRepo.getAll(),
+      channels: ChannelService.getChannels(),
     });
   }
 
@@ -94,14 +93,11 @@ export class ChannelsScreenComp extends Component<Props, ChannelsState> {
 
   async handleItemAction(action: string, item: Channels) {
     if (action === 'delete') {
-      const d = channelRepo.getById(item.id);
-      if (d) {
-        await channelRepo.delete(d);
-        const data = channelRepo.getAll();
-        this.setState({
-          channels: data,
-        });
-      }
+      await ChannelService.delete(item.id);
+      const data = ChannelService.getChannels();
+      this.setState({
+        channels: data,
+      });
     } else if (action === 'edit') {
       this.setState({ newChannel: item, showAddModal: true }, () => {
         this.addInputRef.current?.focus();

@@ -6,9 +6,8 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import noAvatar from '../../assets/no-avatar.png';
 import { Users } from '../../Models';
 import { RealmService } from '../../realm/RealmService';
+import { UserService } from '../../Services';
 import { Colors } from '../../Utils/Colors';
-
-const userRepo: RealmService<Users> = new RealmService<Users>('Users');
 
 interface HeaderLabelState {
   user?: Users;
@@ -25,12 +24,12 @@ type Props = HeaderLabelProps;
 export class HeaderLabel extends Component<Props, HeaderLabelState> {
   constructor(props: HeaderLabelProps) {
     super(props);
-    const user = userRepo.getAll()?.find((x) => x.isSystem);
+    const user = UserService.getSystemUser();
     this.state = { user: user };
   }
 
   render() {
-    const user = userRepo.getAll()?.find((x) => x.isSystem);
+    const user = UserService.getSystemUser();
     return (
       <View style={styles.container}>
         {this.props.navigation.canGoBack() ? (

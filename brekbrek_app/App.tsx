@@ -24,6 +24,7 @@ import { ChannelScreenComp } from './src/Screens/Channel';
 import { ContactsScreenComp } from './src/Screens/Contacts';
 import { ProfileComp } from './src/Screens/Profile';
 import { RegisterComp } from './src/Screens/Register';
+import { InviteService, UserService } from './src/Services';
 import { Colors } from './src/Utils/Colors';
 import { config } from './src/Utils/config';
 import JavaJsModule from './src/Utils/JavaJsModule';
@@ -40,16 +41,12 @@ interface ApplicationState {
   isLogin: boolean;
 }
 
-const userRepo: RealmService<Users> = new RealmService<Users>('Users');
-const channelRepo: RealmService<Channels> = new RealmService<Channels>('Channels');
-const inviteRepo: RealmService<Invite> = new RealmService<Invite>('Invite');
-
 export default class App extends Component<any, ApplicationState> {
   constructor(props: any) {
     super(props);
     this.navigationRef = React.createRef<NavigationContainerRef>();
     this.importChannelData = this.importChannelData.bind(this);
-    const user = userRepo.getAll()?.find((x) => x.isSystem);
+    const user = UserService.getSystemUser();
     this.state = {
       isLogin: !!user,
     };
@@ -69,7 +66,7 @@ export default class App extends Component<any, ApplicationState> {
   }
 
   async componentDidMount() {
-    const invites = inviteRepo.getAll();
+    const invites = InviteService.getInvites();
     if (invites && invites.length > 0) {
       const postUrl = `${config.serverUrl}/invite/list`;
       const inviteResponse = await fetch(postUrl, {
@@ -85,29 +82,23 @@ export default class App extends Component<any, ApplicationState> {
         if (resp && resp.data && resp.data.length > 0) {
           for (let index = 0; index < resp.data.length; index++) {
             const contactInfo = resp.data[index];
-            const contact = userRepo.getById(new ObjectId(contactInfo.userId));
+            const contact = UserService.getUser(contactInfo.userId);
+
             if (!contact) {
-              await userRepo.save({
+              await UserService.save({
                 id: new ObjectId(contactInfo.userId),
-                isSystem: false,
                 Name: contactInfo.name,
                 refId: contactInfo.refId,
               });
-              const savedInvite = inviteRepo.getById(new ObjectId(contactInfo.id));
-              if (savedInvite) {
-                await inviteRepo.delete(savedInvite);
-              }
+              await InviteService.delete(contactInfo.id);
             } else {
-              const savedInvite = inviteRepo.getById(new ObjectId(contactInfo.id));
-              if (savedInvite) {
-                await inviteRepo.delete(savedInvite);
-              }
+              await InviteService.delete(contactInfo.id);
             }
           }
         } else {
           for (let index = 0; index < invites.length; index++) {
             const inv = invites[index];
-            await inviteRepo.delete(inv);
+            await InviteService.delete(inv.id);
           }
         }
       }
@@ -129,7 +120,7 @@ export default class App extends Component<any, ApplicationState> {
       const postUrl = `${config.serverUrl}/invite/accept`;
       const urlParse = url.split('/');
       const inviteId = urlParse.pop();
-      const user = userRepo.getAll()?.find((x) => x.isSystem);
+      const user = UserService.getSystemUser();
       const inviteResponse = await fetch(postUrl, {
         method: 'POST',
         headers: {
@@ -148,14 +139,13 @@ export default class App extends Component<any, ApplicationState> {
         const resp = await inviteResponse.json();
 
         if (resp.success == undefined) {
-          const contact = userRepo.getById(new ObjectId(resp.id));
+          const contact = UserService.getUser(resp.id);
 
           if (!contact) {
-            await userRepo.save({
+            await UserService.save({
               id: new ObjectId(resp.id),
               Name: resp.name,
               refId: resp.refId,
-              isSystem: false,
             });
             ToastAndroid.show('Yeni kişi eklenmiştir', 1000);
           }
@@ -250,7 +240,7 @@ export default class App extends Component<any, ApplicationState> {
                 component={RegisterComp}
                 listeners={{
                   beforeRemove: () => {
-                    const user = userRepo.getAll()?.find((x) => x.isSystem);
+                    const user = UserService.getSystemUser();
                     this.setState({
                       isLogin: !!user,
                     });

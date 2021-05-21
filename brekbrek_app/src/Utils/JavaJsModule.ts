@@ -1,19 +1,15 @@
 import { NativeModules } from 'react-native';
-import { RtcConnection } from './RtcConnection';
-import { uuidv4 } from './Tools';
-import { IHelperModule } from './IHelperModule';
+import { Users } from '../Models';
+import { ChannelService, UserService } from '../Services';
 import { config } from './config';
-import { RealmService } from '../realm/RealmService';
-import { Channels, Users } from '../Models';
-import { ObjectId } from 'bson';
+import { IHelperModule } from './IHelperModule';
+import { RtcConnection } from './RtcConnection';
 
 const HelperModule: IHelperModule = NativeModules.HelperModule;
-const channelRepo: RealmService<Channels> = new RealmService<Channels>('Channels');
-const usersRepo: RealmService<Users> = new RealmService<Users>('Users');
 
 class JavaJsModule {
   constructor() {
-    this.user = usersRepo.getAll()?.find((x) => x.isSystem);
+    this.user = UserService.getSystemUser();
   }
 
   private static instance: JavaJsModule;
@@ -54,8 +50,8 @@ class JavaJsModule {
 
   private async startRtcConnection(channelId: string) {
     if (!this.rtcConnection) {
-      const channel = channelRepo.getById(new ObjectId(channelId));
-      this.user = usersRepo.getAll()?.find((x) => x.isSystem);
+      const channel = ChannelService.get(channelId);
+      this.user = UserService.getSystemUser();
       this.clientId = `${channelId}/${channel?.refId}/${this.user?.id.toHexString()}`;
       this.rtcConnection = new RtcConnection(`${config.socketUrl}/${this.clientId}`);
     }

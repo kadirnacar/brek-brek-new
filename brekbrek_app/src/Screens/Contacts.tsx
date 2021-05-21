@@ -1,20 +1,15 @@
 import { NavigationProp } from '@react-navigation/core';
+import { ObjectId } from 'bson';
 import React, { Component } from 'react';
 import { FlatList, NativeModules, StyleSheet, Text, ToastAndroid, View } from 'react-native';
 import { FloatingAction } from 'react-native-floating-action';
-import Icon from 'react-native-vector-icons/FontAwesome5';
-import { Invite, Users } from '../Models';
-import { RealmService } from '../realm/RealmService';
-import { Colors } from '../Utils/Colors';
-import { IHelperModule } from '../Utils/IHelperModule';
 import Share from 'react-native-share';
-import * as RNFS from 'react-native-fs';
-import { ObjectId } from 'bson';
+import Icon from 'react-native-vector-icons/FontAwesome5';
+import { Users } from '../Models';
+import { InviteService, UserService } from '../Services';
+import { Colors } from '../Utils/Colors';
 import { config } from '../Utils/config';
-
-const HelperModule: IHelperModule = NativeModules.HelperModule;
-const userRepo: RealmService<Users> = new RealmService<Users>('Users');
-const inviteRepo: RealmService<Invite> = new RealmService<Invite>('Invite');
+import { IHelperModule } from '../Utils/IHelperModule';
 
 interface ContactsProps {
   navigation: NavigationProp<any>;
@@ -36,7 +31,7 @@ export class ContactsScreenComp extends Component<Props, ContactState> {
   }
 
   async shareInvite() {
-    const user = userRepo.getAll()?.find((x) => x.isSystem);
+    const user = UserService.getSystemUser();
 
     const postUrl = `${config.serverUrl}/invite`;
     const inviteResponse = await fetch(postUrl, {
@@ -53,7 +48,7 @@ export class ContactsScreenComp extends Component<Props, ContactState> {
 
       if (resp.inviteId) {
         const shareUrl = `${config.inviteUrl}/${resp.inviteId}`;
-        await inviteRepo.save({ id: new ObjectId(resp.inviteId) });
+        await InviteService.save({ id: new ObjectId(resp.inviteId) });
 
         try {
           const result = await Share.open({
@@ -74,10 +69,7 @@ export class ContactsScreenComp extends Component<Props, ContactState> {
                   id: resp.inviteId,
                 }),
               });
-              const savedInvite = inviteRepo.getById(new ObjectId(resp.inviteId));
-              if (savedInvite) {
-                await inviteRepo.delete(savedInvite);
-              }
+              await InviteService.delete(resp.inviteId);
             } catch {}
           }
         } catch (err) {
@@ -92,10 +84,7 @@ export class ContactsScreenComp extends Component<Props, ContactState> {
                 id: resp.inviteId,
               }),
             });
-            const savedInvite = inviteRepo.getById(new ObjectId(resp.inviteId));
-            if (savedInvite) {
-              await inviteRepo.delete(savedInvite);
-            }
+            await InviteService.delete(resp.inviteId);
           } catch {}
         }
       }
@@ -105,7 +94,7 @@ export class ContactsScreenComp extends Component<Props, ContactState> {
   }
 
   async componentDidMount() {
-    const contacts = userRepo.getAll()?.filter((x) => !x.isSystem);
+    const contacts = UserService.getContacts();
     if (contacts) {
       this.setState({
         contacts: contacts || [],
