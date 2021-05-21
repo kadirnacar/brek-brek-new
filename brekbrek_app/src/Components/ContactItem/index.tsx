@@ -66,18 +66,19 @@ class ContactItem extends Component<Props, ContactItemState> {
     this.setState({ isMenuOpen: false });
   }
   render() {
+    const itemSize = width / 4 - 30;
     return this.props.contact ? (
       <TouchableOpacity
-        style={styles.listItem}
+        style={[{ width: itemSize }, styles.listItem]}
         onPress={this.onNavigatePress}
         onLongPress={this.onNavigateLongPress}>
         <View
           style={{
-            width: width / 3 - 30,
-            height: width / 3 - 30,
+            width: itemSize,
+            height: itemSize,
             backgroundColor: Colors.dark,
             // backgroundColor: Colors.generateColor(info.item.Name),
-            borderRadius: (width / 3 - 30) / 2,
+            borderRadius: itemSize / 2,
             borderWidth: 5,
             borderColor: Colors.light,
             justifyContent: 'center',
@@ -102,7 +103,7 @@ class ContactItem extends Component<Props, ContactItemState> {
             style={{
               width: '100%',
               height: '100%',
-              borderRadius: (width / 3 - 30) / 2,
+              borderRadius: itemSize / 2,
               justifyContent: 'center',
               alignSelf: 'center',
               alignItems: 'center',
@@ -147,12 +148,12 @@ const optionsStyles = {
 };
 
 const styles = StyleSheet.create({
-  listItem: { margin: 10, width: width / 3 - 30 },
+  listItem: { margin: 10 },
   listItemLabel: {
     color: Colors.light,
     flexWrap: 'wrap',
     width: '100%',
     textAlign: 'center',
-    fontSize: 16,
+    fontSize: 14,
   },
 });

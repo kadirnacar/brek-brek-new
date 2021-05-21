@@ -115,16 +115,21 @@ export class ContactsScreenComp extends Component<Props, ContactState> {
   }
 
   render() {
+    const data = this.state.contacts ? this.state.contacts : [];
+    data.push(...data);
+    data.push(...data);
+    data.push(...data);
+    data.push(...data);
     return (
       <View style={styles.screen}>
         <View style={styles.content}>
           <FlatList
-            data={this.state.contacts ? this.state.contacts : []}
+            data={data}
             style={{ width: '100%' }}
             contentContainerStyle={{
               width: '100%',
             }}
-            numColumns={3}
+            numColumns={4}
             renderItem={(info) => {
               return (
                 <ContactItem
