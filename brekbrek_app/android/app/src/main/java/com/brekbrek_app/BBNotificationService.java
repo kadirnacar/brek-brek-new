@@ -106,8 +106,7 @@ public class BBNotificationService extends Service {
     public void onCreate() {
         mNM = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         mngr = (PowerManager) getSystemService(POWER_SERVICE);
-        wakeLock = mngr.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,"BrekBrek");
-        wakeLock.acquire();
+        wakeLock = mngr.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "BrekBrek");
         startTimer();
         // Display a notification about us starting.
         showNotification();
@@ -128,9 +127,10 @@ public class BBNotificationService extends Service {
     public void initializeTimerTask() {
         timerTask = new TimerTask() {
             public void run() {
+                wakeLock.acquire();
 
                 OkHttpClient client = new OkHttpClient();
-                String url = "http://192.168.0.12:3001/invite/test";
+                String url = "http://192.168.0.12:3001/invite/test/" + String.valueOf(count);
                 Request request = new Request.Builder()
                         .url(url)
                         .build();
@@ -141,8 +141,8 @@ public class BBNotificationService extends Service {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                wakeLock.release();
 
-                Log.i("BrekBrek", "work" + String.valueOf(count));
                 count = count + 1;
             }
         };
@@ -159,7 +159,6 @@ public class BBNotificationService extends Service {
     public void onDestroy() {
         // Cancel the persistent notification.
         mNM.cancel(R.string.remote_service_started);
-        wakeLock.release();
         // Tell the user we stopped.
         //Toast.makeText(this, R.string.remote_service_stopped, Toast.LENGTH_SHORT).show();
     }

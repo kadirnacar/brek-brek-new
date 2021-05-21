@@ -1,17 +1,26 @@
+import { Invite } from '@models';
 import * as http from 'http';
 import * as https from 'https';
 import { URL } from 'url';
 import ws from 'ws';
+import { RealmService } from '../realm/RealmService';
 
 export class SocketService {
   static wsServer: ws.Server;
   static clients: { [id: string]: { socket: ws; type?: string } } = {};
+
+  static inviteRepo: RealmService<Invite>;
 
   public static init(server: http.Server | https.Server) {
     this.wsServer = new ws.Server({
       server: server,
     });
     this.wsServer.on('connection', this.onConnection.bind(this));
+    this.inviteRepo = new RealmService<Invite>('Invite');
+
+    this.inviteRepo.addListener((collection, changes) => {
+      console.log('invite changes', changes);
+    });
   }
 
   private static onConnection(socket: ws, request: http.IncomingMessage) {

@@ -50,16 +50,21 @@
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".BootStarterService">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
+<!--        <receiver android:name=".BootStarterService">-->
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.BOOT_COMPLETED" />-->
+<!--            </intent-filter>-->
+<!--        </receiver>-->
 
-        <service
-            android:name=".BBNotificationService"
-            android:enabled="true"
-            android:exported="false" />
+<!--        <service-->
+<!--            android:name=".BBNotificationService"-->
+<!--            android:enabled="true"-->
+<!--            android:exported="false">-->
+
+<!--            <intent-filter>-->
+<!--                <action android:name="com.google.firebase.MESSAGING_EVENT" />-->
+<!--            </intent-filter>-->
+<!--        </service>-->
         <service
             android:name=".BackgroundCallerService"
             android:enabled="true"

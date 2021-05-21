@@ -7,7 +7,6 @@ export class RealmService<T> {
     this.modelType = entityName;
     if (!RealmService.realm) {
       try {
-
         RealmService.realm = new Realm({
           path: `data/database.realm`,
           schemaVersion: 3,
@@ -24,6 +23,19 @@ export class RealmService<T> {
 
   private static realm: Realm;
   private modelType;
+
+  addListener(callback: Realm.CollectionChangeCallback<T>) {
+    RealmService.realm.objects<T>(this.modelType).addListener(callback);
+  }
+
+  removeListener(callback: Realm.CollectionChangeCallback<T>) {
+    RealmService.realm.objects<T>(this.modelType).removeListener(callback);
+  }
+
+  removeAllListener(name: string) {
+    RealmService.realm.objects<T>(this.modelType).removeAllListeners();
+  }
+
   getById(id: any): T | undefined {
     if (RealmService.realm) {
       const item: T = <T>RealmService.realm.objectForPrimaryKey<T>(this.modelType, id);

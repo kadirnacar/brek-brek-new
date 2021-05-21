@@ -1,11 +1,15 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { decode } from 'base64-arraybuffer';
 import { ObjectId } from 'bson';
 import React, { Component } from 'react';
-import { AppState, AppStateStatus, KeyboardAvoidingView, Linking, ToastAndroid, View } from 'react-native';
-import * as RNFS from 'react-native-fs';
+import {
+  AppState,
+  AppStateStatus,
+  KeyboardAvoidingView,
+  Linking,
+  ToastAndroid,
+} from 'react-native';
 import 'react-native-gesture-handler';
 import 'react-native-get-random-values';
 import { MenuProvider } from 'react-native-popup-menu';
@@ -14,13 +18,14 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import BatchedBridge from 'react-native/Libraries/BatchedBridge/BatchedBridge';
 import HeaderLabel from './src/Components/HeaderLabel';
 import HeaderMenu from './src/Components/HeaderMenu';
-import { Channels, Users } from './src/Models';
+import { Channels, Invite, Users } from './src/Models';
 import { RealmService } from './src/realm/RealmService';
 import { ChannelScreenComp } from './src/Screens/Channel';
 import { ContactsScreenComp } from './src/Screens/Contacts';
 import { ProfileComp } from './src/Screens/Profile';
 import { RegisterComp } from './src/Screens/Register';
 import { Colors } from './src/Utils/Colors';
+import { config } from './src/Utils/config';
 import JavaJsModule from './src/Utils/JavaJsModule';
 enableScreens(false);
 
@@ -37,6 +42,7 @@ interface ApplicationState {
 
 const userRepo: RealmService<Users> = new RealmService<Users>('Users');
 const channelRepo: RealmService<Channels> = new RealmService<Channels>('Channels');
+const inviteRepo: RealmService<Invite> = new RealmService<Invite>('Invite');
 
 export default class App extends Component<any, ApplicationState> {
   constructor(props: any) {
@@ -62,6 +68,52 @@ export default class App extends Component<any, ApplicationState> {
     AppState.removeEventListener('change', this.onStateChange);
   }
 
+  async componentDidMount() {
+    const invites = inviteRepo.getAll();
+    if (invites && invites.length > 0) {
+      const postUrl = `${config.serverUrl}/invite/list`;
+      const inviteResponse = await fetch(postUrl, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ invites: invites?.map((x) => x.id.toHexString()) }),
+      });
+      if (inviteResponse.ok) {
+        const resp = await inviteResponse.json();
+        if (resp && resp.data && resp.data.length > 0) {
+          for (let index = 0; index < resp.data.length; index++) {
+            const contactInfo = resp.data[index];
+            const contact = userRepo.getById(new ObjectId(contactInfo.userId));
+            if (!contact) {
+              await userRepo.save({
+                id: new ObjectId(contactInfo.userId),
+                isSystem: false,
+                Name: contactInfo.name,
+                refId: contactInfo.refId,
+              });
+              const savedInvite = inviteRepo.getById(new ObjectId(contactInfo.id));
+              if (savedInvite) {
+                await inviteRepo.delete(savedInvite);
+              }
+            } else {
+              const savedInvite = inviteRepo.getById(new ObjectId(contactInfo.id));
+              if (savedInvite) {
+                await inviteRepo.delete(savedInvite);
+              }
+            }
+          }
+        } else {
+          for (let index = 0; index < invites.length; index++) {
+            const inv = invites[index];
+            await inviteRepo.delete(inv);
+          }
+        }
+      }
+    }
+  }
+
   async onStateChange(state: AppStateStatus) {
     if (state == 'active') {
       const url = await Linking.getInitialURL();
@@ -74,23 +126,46 @@ export default class App extends Component<any, ApplicationState> {
 
   async importChannelData(url: string) {
     try {
-      const dataString = await RNFS.readFile(url);
-      const data = JSON.parse(dataString);
-      const d = channelRepo.getById(new ObjectId(data.id));
-      if (!d) {
-        await channelRepo.save({
-          id: new ObjectId(data.id),
-          Name: data.Name,
-          Image: data.Image ? decode(data.Image) : undefined,
-          refId: data.refId,
-        });
-        this.setState({});
-        this.navigationRef.current?.navigate('Channels', { refresh: new Date() });
-        ToastAndroid.show('Kanal bilgisi başarıyla yüklendiii', 1000);
+      const postUrl = `${config.serverUrl}/invite/accept`;
+      const urlParse = url.split('/');
+      const inviteId = urlParse.pop();
+      const user = userRepo.getAll()?.find((x) => x.isSystem);
+      const inviteResponse = await fetch(postUrl, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: inviteId,
+          refId: user?.refId,
+          userId: user?.id.toHexString(),
+          name: user?.Name,
+        }),
+      });
+
+      if (inviteResponse.ok) {
+        const resp = await inviteResponse.json();
+
+        if (resp.success == undefined) {
+          const contact = userRepo.getById(new ObjectId(resp.id));
+
+          if (!contact) {
+            await userRepo.save({
+              id: new ObjectId(resp.id),
+              Name: resp.name,
+              refId: resp.refId,
+              isSystem: false,
+            });
+            ToastAndroid.show('Yeni kişi eklenmiştir', 1000);
+          }
+        } else if (resp.message) {
+          ToastAndroid.show(resp.message, 1000);
+        }
       }
     } catch (err) {
-      console.error(err);
-      ToastAndroid.show('Kanal bilgisi yüklenemedi', 1000);
+      console.log(err);
+      ToastAndroid.show('Kişi bilgisi yüklenemedi', 1000);
     }
     this.linkinUrl = '';
   }

@@ -1,4 +1,4 @@
-export { Invite } from './Invite';
+export { Invite, InviteStatus } from './Invite';
 
 import { Invite } from './Invite';
 

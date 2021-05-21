@@ -19,6 +19,12 @@ export class Users {
   Image?: ArrayBuffer;
 }
 
+@Entity('Invite')
+export class Invite {
+  @PrimaryKey('objectId')
+  id: ObjectId;
+}
+
 @Entity('Channels')
 export class Channels {
   @PrimaryKey('objectId')
@@ -36,21 +42,3 @@ export class Channels {
   @Column({ type: 'list', objectType: 'Users' })
   Contacts?: Users[];
 }
-
-// @Entity('Contacts')
-// export class Contacts {
-//   @PrimaryKey('objectId')
-//   id: ObjectId;
-
-//   @Column('string')
-//   Name: string;
-
-//   @Column({ type: 'string', optional: true })
-//   Nickname?: string;
-
-//   @Column({ type: 'bool', default: false })
-//   HasMyList?: boolean;
-
-//   @Column({ type: 'data', optional: true })
-//   Image?: ArrayBuffer;
-// }

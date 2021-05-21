@@ -1,9 +1,9 @@
 import { NavigationProp } from '@react-navigation/core';
 import React, { Component } from 'react';
-import { FlatList, NativeModules, StyleSheet, Text, View } from 'react-native';
+import { FlatList, NativeModules, StyleSheet, Text, ToastAndroid, View } from 'react-native';
 import { FloatingAction } from 'react-native-floating-action';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import { Users } from '../Models';
+import { Invite, Users } from '../Models';
 import { RealmService } from '../realm/RealmService';
 import { Colors } from '../Utils/Colors';
 import { IHelperModule } from '../Utils/IHelperModule';
@@ -14,6 +14,7 @@ import { config } from '../Utils/config';
 
 const HelperModule: IHelperModule = NativeModules.HelperModule;
 const userRepo: RealmService<Users> = new RealmService<Users>('Users');
+const inviteRepo: RealmService<Invite> = new RealmService<Invite>('Invite');
 
 interface ContactsProps {
   navigation: NavigationProp<any>;
@@ -35,27 +36,72 @@ export class ContactsScreenComp extends Component<Props, ContactState> {
   }
 
   async shareInvite() {
-    const inviteId = new ObjectId();
     const user = userRepo.getAll()?.find((x) => x.isSystem);
-    // const inviteUrl = `${config.serverUrl}/invite/${user?.id.toHexString()}/${
-    //   user?.refId
-    // }/${inviteId.toHexString()}.brekbrek`;
 
-    const inviteUrl = `http://brekbrek.kadirnacar.com/invite/${user?.id.toHexString()}/${
-      user?.refId
-    }/${inviteId.toHexString()}.brekbrek`;
+    const postUrl = `${config.serverUrl}/invite`;
+    const inviteResponse = await fetch(postUrl, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name: user?.Name, refId: user?.refId, id: user?.id.toHexString() }),
+    });
 
-    try {
-      const result = await Share.open({
-        title: 'Kanal Daveti',
-        message: 'Davet Et',
-        subject: 'Davet',
-        type: 'url',
-        filename: 'davet',
-        url: inviteUrl,
-      });
-      await fetch(inviteUrl);
-    } catch {}
+    if (inviteResponse.ok) {
+      const resp = await inviteResponse.json();
+
+      if (resp.inviteId) {
+        const shareUrl = `${config.inviteUrl}/${resp.inviteId}`;
+        await inviteRepo.save({ id: new ObjectId(resp.inviteId) });
+
+        try {
+          const result = await Share.open({
+            title: 'Kanal Daveti',
+            message: 'Davet Et',
+            subject: 'Davet',
+            url: shareUrl,
+          });
+          if (!result.success) {
+            try {
+              await fetch(postUrl, {
+                method: 'DELETE',
+                headers: {
+                  Accept: 'application/json',
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  id: resp.inviteId,
+                }),
+              });
+              const savedInvite = inviteRepo.getById(new ObjectId(resp.inviteId));
+              if (savedInvite) {
+                await inviteRepo.delete(savedInvite);
+              }
+            } catch {}
+          }
+        } catch (err) {
+          try {
+            await fetch(postUrl, {
+              method: 'DELETE',
+              headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                id: resp.inviteId,
+              }),
+            });
+            const savedInvite = inviteRepo.getById(new ObjectId(resp.inviteId));
+            if (savedInvite) {
+              await inviteRepo.delete(savedInvite);
+            }
+          } catch {}
+        }
+      }
+    } else {
+      ToastAndroid.show('İnternet bağlantı hatası', 500);
+    }
   }
 
   async componentDidMount() {

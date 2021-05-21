@@ -1,6 +1,10 @@
 import { ObjectId } from 'bson';
 import { Column, Entity, PrimaryKey } from '../realm/decorators';
 
+export enum InviteStatus {
+  Waiting,
+  Accepted,
+}
 @Entity('Invite')
 export class Invite {
   @PrimaryKey('objectId')
@@ -10,10 +14,22 @@ export class Invite {
   userId: string;
 
   @Column('string')
-  refId: string;
+  name: string;
 
   @Column('string')
-  inviteId: string;
+  refId: string;
+
+  @Column({ type: 'int', default: InviteStatus.Waiting })
+  status?: InviteStatus;
+
+  @Column({ type: 'string', optional: true })
+  iUserId?: string;
+
+  @Column({ type: 'string', optional: true })
+  iName?: string;
+
+  @Column({ type: 'string', optional: true })
+  iRefId?: string;
 
   @Column({ type: 'date', default: new Date() })
   createDate?: Date;
