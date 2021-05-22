@@ -2,6 +2,7 @@ package com.brekbrek_app;
 
 import android.util.Log;
 
+import com.brekbrek_app.utils.Player;
 import com.facebook.react.bridge.ReactApplicationContext;
 
 import org.webrtc.DataChannel;
@@ -72,6 +73,10 @@ public class RtcClient {
                              String candidate) {
         IceCandidate iceCandidate = new IceCandidate(sdpMid, sdpMLineIndex, candidate);
         peer.addIceCandidate(iceCandidate);
+    }
+
+    public void sendPlay(DataChannel.Buffer buffer) {
+        peerDataChannel.send(buffer);
     }
 
     PeerConnection.Observer peerObserver = new PeerConnection.Observer() {
@@ -196,11 +201,15 @@ public class RtcClient {
 
         @Override
         public void onMessage(DataChannel.Buffer buffer) {
-            if (!buffer.binary) {
-                int limit = buffer.data.limit();
-                byte[] datas = new byte[limit];
-                buffer.data.get(datas);
-            }
+            Player.start();
+            byte[] arr = buffer.data.array();
+            Log.i("BrekBrek get", String.valueOf(arr.length));
+            Player.stream(arr);
+//            if (!buffer.binary) {
+//                int limit = buffer.data.limit();
+//                byte[] datas = new byte[limit];
+//                buffer.data.get(datas);
+//            }
         }
     };
 }

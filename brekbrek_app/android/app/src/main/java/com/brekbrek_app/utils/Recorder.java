@@ -5,9 +5,16 @@ import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.media.audiofx.AcousticEchoCanceler;
 import android.media.audiofx.NoiseSuppressor;
+import android.os.Build;
+import android.util.Log;
+
+import androidx.annotation.RequiresApi;
 
 import com.brekbrek_app.HelperModule;
 
+import org.webrtc.DataChannel;
+
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 
@@ -72,7 +79,7 @@ public class Recorder {
         }
         recordingThread = null;
 
-        if(isRecording) {
+        if (isRecording) {
             HashMap param = new HashMap();
             param.put("type", "record");
             param.put("status", 0);
@@ -82,6 +89,7 @@ public class Recorder {
         System.gc();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     private static void recording() {
         byte[] inBuf = new byte[FRAME_SIZE * NUM_CHANNELS * 2];
         byte[] encBuf = new byte[FRAME_SIZE * 2];
@@ -106,13 +114,12 @@ public class Recorder {
                 try {
                     int encoded = opusEncoder.encode(inBuf, FRAME_SIZE, encBuf);
                     if (encoded > 0) {
-                        HashMap param = new HashMap();
                         byte[] data = Arrays.copyOf(encBuf, encoded);
-                        param.put("data", data);
-                        HelperModule.callScript(param);
-                        param.clear();
-                        param = null;
-                        data = null;
+
+                        ByteBuffer byteBuffer =
+                                ByteBuffer.wrap(data);
+                        DataChannel.Buffer buffer = new DataChannel.Buffer(byteBuffer, true);
+                        HelperModule.sendData(buffer);
                     }
                 } catch (Exception ex) {
                 } catch (Throwable throwable) {

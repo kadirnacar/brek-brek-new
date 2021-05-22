@@ -18,8 +18,6 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import BatchedBridge from 'react-native/Libraries/BatchedBridge/BatchedBridge';
 import HeaderLabel from './src/Components/HeaderLabel';
 import HeaderMenu from './src/Components/HeaderMenu';
-import { Channels, Invite, Users } from './src/Models';
-import { RealmService } from './src/realm/RealmService';
 import { ChannelScreenComp } from './src/Screens/Channel';
 import { ContactsScreenComp } from './src/Screens/Contacts';
 import { ProfileComp } from './src/Screens/Profile';
@@ -66,6 +64,10 @@ export default class App extends Component<any, ApplicationState> {
   }
 
   async componentDidMount() {
+    if (this.navigationRef && this.navigationRef.current) {
+      JavaJsModule.setNavigation(this.navigationRef.current);
+    }
+
     const invites = InviteService.getInvites();
     if (invites && invites.length > 0) {
       const postUrl = `${config.serverUrl}/invite/list`;

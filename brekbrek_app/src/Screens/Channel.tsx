@@ -1,25 +1,23 @@
 import { NavigationProp, RouteProp } from '@react-navigation/core';
 import { encode } from 'base64-arraybuffer';
-import { ObjectId } from 'bson';
 import React, { Component } from 'react';
 import { FlatList, NativeModules, StyleSheet, View } from 'react-native';
 import { FloatingAction } from 'react-native-floating-action';
-import * as RNFS from 'react-native-fs';
-import Share from 'react-native-share';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import channelGrayIcon from '../../src/assets/channelgray.png';
+import noAvatar from '../../src/assets/no-avatar.png';
 import HeaderLabel from '../Components/HeaderLabel';
 import UserItem from '../Components/UserItem';
-import { Channels, Users } from '../Models';
-import { RealmService } from '../realm/RealmService';
-import { ChannelService } from '../Services';
+import { Users } from '../Models';
+import { ChannelService, UserService } from '../Services';
 import { Colors } from '../Utils/Colors';
 import { IHelperModule } from '../Utils/IHelperModule';
 import JavaJsModule from '../Utils/JavaJsModule';
 
 const HelperModule: IHelperModule = NativeModules.HelperModule;
 interface ChannelState {
-  channel?: Channels;
+  contacts: Users[];
+  onlines: string[];
 }
 
 interface ChannelProps {
@@ -34,39 +32,82 @@ export class ChannelScreenComp extends Component<Props, ChannelState> {
     super(props);
     this.handleItemAction = this.handleItemAction.bind(this);
     this.shareChannel = this.shareChannel.bind(this);
+    this.navigationRefresh = this.navigationRefresh.bind(this);
     this.state = {
-      channel: undefined,
+      contacts: [],
+      onlines: [],
     };
+    this.props.navigation.addListener('state', this.navigationRefresh);
   }
 
   async componentDidMount() {
     const params = this.props.route.params ? this.props.route.params : {};
+    const user = UserService.getSystemUser();
+    if (params.type == 'Contact') {
+      const contact = UserService.getUser(params.id);
 
-    const channel = ChannelService.get(params.id);
-    if (channel) {
-      this.props.navigation.setOptions({
-        headerLeft: (propss: any) => (
-          <HeaderLabel
-            navigation={this.props.navigation}
-            name={channel.Name}
-            image={
-              channel.Image
-                ? {
-                    uri: `data:image/png;base64,${encode(channel.Image)}`,
-                  }
-                : channelGrayIcon
-            }
-          />
-        ),
-      });
+      if (contact) {
+        this.props.navigation.setOptions({
+          headerLeft: (propss: any) => (
+            <HeaderLabel
+              navigation={this.props.navigation}
+              name={contact.Name}
+              image={
+                contact.Image
+                  ? {
+                      uri: `data:image/png;base64,${encode(contact.Image)}`,
+                    }
+                  : noAvatar
+              }
+            />
+          ),
+        });
 
-      this.setState({ channel: channel });
-      HelperModule.startService(channel.Name, channel.id.toHexString());
+        this.setState({ contacts: [contact] });
+        HelperModule.startService(contact.Name || '', `${user?.refId}/${contact.refId}`);
+      }
+    } else if (params.type == 'Channel') {
+      const channel = ChannelService.get(params.id);
+      if (channel) {
+        this.props.navigation.setOptions({
+          headerLeft: (propss: any) => (
+            <HeaderLabel
+              navigation={this.props.navigation}
+              name={channel.Name}
+              image={
+                channel.Image
+                  ? {
+                      uri: `data:image/png;base64,${encode(channel.Image)}`,
+                    }
+                  : channelGrayIcon
+              }
+            />
+          ),
+        });
+
+        if (channel.Contacts) {
+          this.setState({ contacts: channel.Contacts });
+        }
+        HelperModule.startService(channel.Name, channel.id.toHexString());
+      }
     }
   }
 
   componentWillUnmount() {
     HelperModule.stopService();
+    this.props.navigation.removeListener('state', this.navigationRefresh);
+  }
+
+  navigationRefresh(e: any) {
+    if (this.props.route.params?.contactId) {
+      const { onlines } = this.state;
+      if (this.props.route.params?.status == 'online') {
+        onlines.push(this.props.route.params?.contactId);
+      } else if (onlines.indexOf(this.props.route.params?.contactId) > -1) {
+        onlines.splice(onlines.indexOf(this.props.route.params?.contactId), 1);
+      }
+      this.setState({ onlines });
+    }
   }
 
   async handleItemAction(action: string, item: Users) {
@@ -76,43 +117,45 @@ export class ChannelScreenComp extends Component<Props, ChannelState> {
   }
 
   async shareChannel() {
-    RNFS.writeFile(
-      `file:///${RNFS.CachesDirectoryPath}/channel.brekbrek`,
-      JSON.stringify({
-        id: this.state.channel?.id.toHexString(),
-        Name: this.state.channel?.Name,
-        refId: this.state.channel?.refId,
-        Image:
-          this.state.channel && this.state.channel.Image ? encode(this.state.channel.Image) : '',
-      })
-    );
-    const result = await Share.open({
-      title: 'Kanal Daveti',
-      message: 'Davet Et',
-      url: `file:///${RNFS.CachesDirectoryPath}/channel.brekbrek`,
-    });
+    // RNFS.writeFile(
+    //   `file:///${RNFS.CachesDirectoryPath}/channel.brekbrek`,
+    //   JSON.stringify({
+    //     id: this.state.channel?.id.toHexString(),
+    //     Name: this.state.channel?.Name,
+    //     refId: this.state.channel?.refId,
+    //     Image:
+    //       this.state.channel && this.state.channel.Image ? encode(this.state.channel.Image) : '',
+    //   })
+    // );
+    // const result = await Share.open({
+    //   title: 'Kanal Daveti',
+    //   message: 'Davet Et',
+    //   url: `file:///${RNFS.CachesDirectoryPath}/channel.brekbrek`,
+    // });
   }
 
   render() {
     return (
       <View style={styles.screen}>
         <FlatList
-          data={
-            this.state.channel && this.state.channel.Contacts ? this.state.channel.Contacts : []
-          }
+          data={this.state.contacts ? this.state.contacts : []}
           style={{ width: '100%' }}
           contentContainerStyle={{
             width: '100%',
+            alignItems: 'center',
           }}
           numColumns={3}
-          renderItem={(info) => (
-            <UserItem
-              navigation={this.props.navigation}
-              onAction={this.handleItemAction}
-              key={info.index}
-              user={info.item}
-            />
-          )}
+          renderItem={(info) => {
+            return (
+              <UserItem
+                navigation={this.props.navigation}
+                onAction={this.handleItemAction}
+                key={info.index}
+                user={info.item}
+                isOnline={this.state.onlines.indexOf(info.item.refId || '') > -1}
+              />
+            );
+          }}
         />
 
         <FloatingAction
@@ -138,7 +181,7 @@ export class ChannelScreenComp extends Component<Props, ChannelState> {
           ]}
           onPressItem={async (name) => {
             if (name == 'ping' && JavaJsModule.rtcConnection) {
-              JavaJsModule.rtcConnection.sendMessage('ddd', { type: 'ping' });
+              JavaJsModule.rtcConnection.sendMessage({ type: 'ping' });
             } else if (name === 'invite') {
               await this.shareChannel();
             }

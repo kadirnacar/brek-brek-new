@@ -1,7 +1,6 @@
 import { encode } from 'base64-arraybuffer';
 import React, { Component } from 'react';
 import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import channelGrayIcon from '../../../src/assets/channelgray.png';
 import { Colors } from '../../Utils/Colors';
 import {
   Menu,
@@ -13,6 +12,7 @@ import {
 } from 'react-native-popup-menu';
 import { NavigationProp } from '@react-navigation/core';
 import { Users } from '../../Models';
+import noAvatar from '../../assets/no-avatar.png';
 
 const { height, width } = Dimensions.get('window');
 
@@ -21,9 +21,9 @@ interface ContactItemState {
 }
 
 interface ContactItemProps {
-  navigation: NavigationProp<any>;
   contact: Users;
   onAction: (action: string, item: Users) => void;
+  onPress: (item: Users) => void;
 }
 
 type Props = ContactItemProps & MenuContextProps;
@@ -43,7 +43,9 @@ class ContactItem extends Component<Props, ContactItemState> {
   }
 
   onNavigatePress() {
-    this.props.navigation.navigate('Contact', { id: this.props.contact.id.toHexString() });
+    if (this.props.onPress) {
+      this.props.onPress(this.props.contact);
+    }
   }
 
   onNavigateLongPress() {
@@ -112,7 +114,7 @@ class ContactItem extends Component<Props, ContactItemState> {
             source={
               this.props.contact.Image
                 ? { uri: `data:image/png;base64,${encode(this.props.contact.Image)}` }
-                : channelGrayIcon
+                : noAvatar
             }
           />
         </View>

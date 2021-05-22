@@ -1,7 +1,7 @@
 import { NavigationProp } from '@react-navigation/core';
 import { ObjectId } from 'bson';
 import React, { Component } from 'react';
-import { FlatList, NativeModules, StyleSheet, Text, ToastAndroid, View } from 'react-native';
+import { FlatList, StyleSheet, ToastAndroid, View } from 'react-native';
 import { FloatingAction } from 'react-native-floating-action';
 import Share from 'react-native-share';
 import Icon from 'react-native-vector-icons/FontAwesome5';
@@ -10,7 +10,6 @@ import { Users } from '../Models';
 import { InviteService, UserService } from '../Services';
 import { Colors } from '../Utils/Colors';
 import { config } from '../Utils/config';
-import { IHelperModule } from '../Utils/IHelperModule';
 
 interface ContactsProps {
   navigation: NavigationProp<any>;
@@ -26,6 +25,7 @@ export class ContactsScreenComp extends Component<Props, ContactState> {
     super(props);
     this.shareInvite = this.shareInvite.bind(this);
     this.handleItemAction = this.handleItemAction.bind(this);
+    this.handleContactItemPress = this.handleContactItemPress.bind(this);
 
     this.state = {
       contacts: undefined,
@@ -114,6 +114,10 @@ export class ContactsScreenComp extends Component<Props, ContactState> {
     }
   }
 
+  handleContactItemPress(contact: Users) {
+    this.props.navigation.navigate('Channel', { type: 'Contact', id: contact.id.toHexString() });
+  }
+
   render() {
     const data = this.state.contacts ? this.state.contacts : [];
     // data.push(...data);
@@ -133,7 +137,7 @@ export class ContactsScreenComp extends Component<Props, ContactState> {
             renderItem={(info) => {
               return (
                 <ContactItem
-                  navigation={this.props.navigation}
+                  onPress={this.handleContactItemPress}
                   onAction={this.handleItemAction}
                   key={info.index}
                   contact={info.item}

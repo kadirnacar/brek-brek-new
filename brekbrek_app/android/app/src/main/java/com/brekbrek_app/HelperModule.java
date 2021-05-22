@@ -6,8 +6,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.provider.Settings;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 
 import com.brekbrek_app.utils.Recorder;
 import com.facebook.react.bridge.Arguments;
@@ -16,10 +18,12 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableNativeMap;
 
+import org.webrtc.DataChannel;
 import org.webrtc.IceCandidate;
 import org.webrtc.SessionDescription;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class HelperModule extends ReactContextBaseJavaModule {
     HelperModule(ReactApplicationContext context) {
@@ -59,16 +63,6 @@ public class HelperModule extends ReactContextBaseJavaModule {
             }
         }
         return status;
-    }
-
-    @ReactMethod
-    public void startRecorder() {
-        Recorder.start();
-    }
-
-    @ReactMethod
-    public void stopRecorder() {
-        Recorder.stop();
     }
 
     @ReactMethod
@@ -114,12 +108,19 @@ public class HelperModule extends ReactContextBaseJavaModule {
         msg = null;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public static void sendData(DataChannel.Buffer buffer) {
+        HelperModule.peers.forEach((key, value) -> {
+            value.sendPlay(buffer);
+        });
+    }
 
     @ReactMethod
     public void createPeer(String peerId) {
         RtcClient peer = HelperModule.peers.get(peerId);
         if (peer == null) {
             peer = new RtcClient(context);
+            HelperModule.peers.put(peerId, peer);
             peer.addListener(new EventListener() {
                 @Override
                 public void onCandidate(IceCandidate candidate) {

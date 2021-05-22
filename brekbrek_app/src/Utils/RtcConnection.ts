@@ -2,14 +2,10 @@ export class RtcConnection {
   constructor(private serverUrl: string) {}
 
   private socket: WebSocket;
-  private socketId: string;
   private disconnected: boolean = false;
 
   public onMessage: (message: any) => void;
-
-  public getClientId() {
-    return this.socketId;
-  }
+  public onOpen: () => void;
 
   public async connectServer(isNew?: boolean) {
     if (isNew) {
@@ -17,6 +13,11 @@ export class RtcConnection {
     }
     return new Promise((resolve, reject) => {
       this.socket = new WebSocket(this.serverUrl);
+      this.socket.onopen = () => {
+        if (this.onOpen) {
+          this.onOpen();
+        }
+      };
       this.socket.onclose = this.onDisconnectServer.bind(this);
       this.socket.onerror = this.onErrorServer.bind(this);
       this.socket.onmessage = async (ev) => {
@@ -36,18 +37,8 @@ export class RtcConnection {
   ) {
     try {
       const data = JSON.parse(ev.data);
-      switch (data.type) {
-        case 'connection':
-          this.socketId = data.clientId;
-          if (succCallback) {
-            succCallback();
-          }
-          break;
-        default:
-          if (this.onMessage) {
-            this.onMessage(data);
-          }
-          break;
+      if (this.onMessage) {
+        this.onMessage(data);
       }
     } catch (err) {
       console.error(err);
@@ -57,10 +48,10 @@ export class RtcConnection {
     }
   }
 
-  public sendMessage(to: string, message: any) {
+  public sendMessage(message: any) {
     if (this.socket.readyState === WebSocket.OPEN) {
       try {
-        this.socket.send(JSON.stringify({ to: to, from: this.socketId, ...message }));
+        this.socket.send(JSON.stringify(message));
       } catch {}
     }
   }
@@ -71,7 +62,7 @@ export class RtcConnection {
     this.socket.onmessage = null;
 
     if (!this.disconnected) {
-      console.info('error', ev);
+      // console.info('error', ev);
       await this.connectServer();
     }
   }
@@ -90,7 +81,6 @@ export class RtcConnection {
       this.socket.onclose = null;
       this.socket.onerror = null;
       this.socket.onmessage = null;
-      this.socketId = '';
     }
   }
 }

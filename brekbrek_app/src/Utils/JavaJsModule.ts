@@ -1,6 +1,7 @@
+import { NavigationContainerRef } from '@react-navigation/core';
 import { NativeModules } from 'react-native';
 import { Users } from '../Models';
-import { ChannelService, UserService } from '../Services';
+import { UserService } from '../Services';
 import { config } from './config';
 import { IHelperModule } from './IHelperModule';
 import { RtcConnection } from './RtcConnection';
@@ -14,8 +15,12 @@ class JavaJsModule {
 
   private static instance: JavaJsModule;
   public rtcConnection?: RtcConnection;
-  private clientId: string;
+  private navigation: NavigationContainerRef;
   private user?: Users;
+
+  public setNavigation(nav: NavigationContainerRef) {
+    this.navigation = nav;
+  }
 
   public static getInstance(): JavaJsModule {
     if (!JavaJsModule.instance) {
@@ -26,6 +31,9 @@ class JavaJsModule {
   }
 
   async callScript(message: any) {
+    if (!this.user) {
+      this.user = UserService.getSystemUser();
+    }
     if (message.type == 'service') {
       if (message.status) {
         await this.startRtcConnection(message.channelId);
@@ -42,29 +50,27 @@ class JavaJsModule {
           message.data.type.toLowerCase() === 'candidate')
       ) {
         if (this.rtcConnection) {
-          this.rtcConnection.sendMessage(message.peerId, message.data);
+          this.rtcConnection.sendMessage({
+            to: message.peerId,
+            from: this.user?.refId,
+            ...message.data,
+          });
         }
       }
     }
   }
 
   private async startRtcConnection(channelId: string) {
-    if (!this.rtcConnection) {
-      const channel = ChannelService.get(channelId);
-      this.user = UserService.getSystemUser();
-      this.clientId = `${channelId}/${channel?.refId}/${this.user?.id.toHexString()}`;
-      this.rtcConnection = new RtcConnection(`${config.socketUrl}/${this.clientId}`);
-    }
+    this.rtcConnection = new RtcConnection(`${config.socketUrl}/${channelId}`);
+
     this.rtcConnection.connectServer(true);
     this.rtcConnection.onMessage = async (msg) => {
-      if (msg.type && msg.type == 'clients') {
-        const streamers = msg.data.filter((x: any) => x.clientId !== this.clientId);
-        console.log(streamers);
-        if (streamers && streamers.length > 0) {
-          for (let index = 0; index < streamers.length; index++) {
-            const streamer = streamers[index];
-            await HelperModule.createPeer(streamer.clientId);
-          }
+      if (msg.type && msg.type == 'connection') {
+        this.navigation.setParams({ contactId: msg.contactId, status: msg.status });
+      } else if (msg.type && msg.type == 'peers') {
+        this.navigation.setParams({ contactId: msg.contactId, status: msg.status });
+        if (msg.offer == true) {
+          await HelperModule.createPeer(msg.contactId);
         }
       } else if (msg.type && msg.type.toLowerCase() === 'offer') {
         await HelperModule.createAnswer(msg.from, msg.type, msg.description);

@@ -9,11 +9,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.os.IBinder;
+
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
+import com.brekbrek_app.utils.Player;
 import com.brekbrek_app.utils.Recorder;
 import com.brekbrek_app.utils.VolumeKeyController;
+
 import java.util.HashMap;
 
 public class BackgroundCallerService extends Service {
@@ -71,11 +74,14 @@ public class BackgroundCallerService extends Service {
         this.mVolumeKeyController.setActive(true);
         String channelName = intent.getExtras().getString("ChannelName");
         String channelId = intent.getExtras().getString("ChannelId");
-        if(!channelName.isEmpty()) {
+        if (!channelName.isEmpty()) {
             this.notificationBuilder.setContentText(channelName);
             this.notification = this.notificationBuilder.build();
             startForeground(1, this.notification);
         }
+
+        Recorder.init();
+        Player.init();
 
         HashMap param = new HashMap();
         param.put("type", "service");
@@ -90,7 +96,7 @@ public class BackgroundCallerService extends Service {
     public void onDestroy() {
         this.mVolumeKeyController.destroy();
         Recorder.stop();
-
+        Player.stop();
         HashMap param = new HashMap();
         param.put("type", "service");
         param.put("status", 0);

@@ -71,7 +71,7 @@ export class InviteRouter {
           res.status(200).send({
             id: invite.userId,
             name: invite.name,
-            refId: invite.iRefId,
+            refId: invite.refId,
           });
         } else {
           res.status(200).send({});

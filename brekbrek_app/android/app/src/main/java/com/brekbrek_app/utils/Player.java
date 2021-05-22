@@ -3,6 +3,7 @@ package com.brekbrek_app.utils;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,12 +32,14 @@ public class Player {
     }
 
     public static void start() {
-        if (audioTrack != null && audioTrack.getPlayState() == AudioTrack.STATE_INITIALIZED) {
-            audioTrack.play();
+        if (isPlaying == false) {
+            if (audioTrack != null && audioTrack.getPlayState() == AudioTrack.STATE_INITIALIZED) {
+                audioTrack.play();
+            }
+            playingThread = new Thread(Player::playing, "PlayingThread");
+            playingThread.start();
+            isPlaying = true;
         }
-        playingThread = new Thread(Player::playing, "PlayingThread");
-        playingThread.start();
-        isPlaying = true;
     }
 
     public static void stop() {

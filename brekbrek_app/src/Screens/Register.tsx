@@ -1,10 +1,10 @@
 import { NavigationProp } from '@react-navigation/native';
 import { decode } from 'base64-arraybuffer';
-import { ObjectId } from 'bson';
 import React, { Component } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
+  NativeModules,
   StyleSheet,
   Text,
   TextInput,
@@ -14,11 +14,11 @@ import {
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import noAvatar from '../assets/no-avatar.png';
 import { FormModal } from '../Components/FormModal';
-import { Users } from '../Models/Channels';
-import { RealmService } from '../realm/RealmService';
 import { UserService } from '../Services';
 import { Colors } from '../Utils/Colors';
-import { uuidv4 } from '../Utils/Tools';
+import { IHelperModule } from '../Utils/IHelperModule';
+
+const HelperModule: IHelperModule = NativeModules.HelperModule;
 
 interface RegisterState {
   showImageSelector: boolean;
@@ -85,8 +85,11 @@ export class RegisterComp extends Component<Props, RegisterState> {
   async saveUser() {
     if (!this.touchableInactive) {
       this.touchableInactive = true;
+      const deviceId = HelperModule.getDeviceId();
+
       await UserService.save({
-        refId: uuidv4(),
+        refId: deviceId,
+        isSystem: true,
         Name: this.state.selectedNickname ? this.state.selectedNickname : '',
         Image: this.state.selectedImage ? decode(this.state.selectedImage) : undefined,
       });

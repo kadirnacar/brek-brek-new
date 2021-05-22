@@ -10,7 +10,7 @@ import {
   MenuTrigger,
   withMenuContext,
 } from 'react-native-popup-menu';
-import channelGrayIcon from '../../../src/assets/channelgray.png';
+import noAvatar from '../../../src/assets/no-avatar.png';
 import { Users } from '../../Models';
 import { Colors } from '../../Utils/Colors';
 
@@ -23,6 +23,7 @@ interface UserItemState {
 interface UserItemProps {
   navigation: NavigationProp<any>;
   user: Users;
+  isOnline?: boolean;
   onAction: (action: string, item: Users) => void;
 }
 
@@ -53,7 +54,7 @@ class UserItem extends Component<Props, UserItemState> {
             backgroundColor: Colors.dark,
             borderRadius: (width / 3 - 30) / 2,
             borderWidth: 5,
-            borderColor: Colors.light,
+            borderColor: this.props.isOnline ? Colors.primary : Colors.light,
             justifyContent: 'center',
             alignSelf: 'center',
             alignItems: 'center',
@@ -94,7 +95,7 @@ class UserItem extends Component<Props, UserItemState> {
             source={
               this.props.user.Image
                 ? { uri: `data:image/png;base64,${encode(this.props.user.Image)}` }
-                : channelGrayIcon
+                : noAvatar
             }
           />
         </View>
