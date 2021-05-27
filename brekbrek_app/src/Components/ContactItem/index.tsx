@@ -22,7 +22,7 @@ interface ContactItemState {
 
 interface ContactItemProps {
   contact: Users;
-  onAction: (action: string, item: Users) => void;
+  onAction: (action: string, item: Users) => Promise<void>;
   onPress: (item: Users) => void;
 }
 
@@ -56,10 +56,10 @@ class ContactItem extends Component<Props, ContactItemState> {
     this.setState({ isMenuOpen: false });
   }
 
-  onMenuSelect(val: string) {
-    this.setState({ isMenuOpen: false }, () => {
+  async onMenuSelect(val: string) {
+    this.setState({ isMenuOpen: false }, async () => {
       if (this.props.onAction) {
-        this.props.onAction(val, this.props.contact);
+        await this.props.onAction(val, this.props.contact);
       }
     });
   }
