@@ -15,6 +15,7 @@ import org.webrtc.RtpReceiver;
 import org.webrtc.SdpObserver;
 import org.webrtc.SessionDescription;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,23 +37,49 @@ public class RtcClient {
         peerConnectionFactory = PeerConnectionFactory.builder().createPeerConnectionFactory();
         List<PeerConnection.IceServer> iceServers = new LinkedList<>();
         iceServers.add(PeerConnection.IceServer.builder("stun:stun.l.google.com:19302").createIceServer());
-        peer = peerConnectionFactory.createPeerConnection(iceServers, peerObserver);
+
+        MediaConstraints constraints = new MediaConstraints();
+        constraints.optional.add(new MediaConstraints.KeyValuePair("DtlsSrtpKeyAgreement", "true"));
+        constraints.optional.add(new MediaConstraints.KeyValuePair("internalSctpDataChannels", "true"));
+        constraints.optional.add(new MediaConstraints.KeyValuePair("RtpDataChannels", "true"));
+
+        peer = peerConnectionFactory.createPeerConnection(iceServers, constraints, peerObserver);
+        peer.setAudioRecording(false);
+        peer.setAudioPlayout(false);
     }
 
     private List<EventListener> listeners = new ArrayList<EventListener>();
     private PeerConnectionFactory peerConnectionFactory;
     private PeerConnection peer;
     private DataChannel peerDataChannel;
+    private DataChannel peerDataChannel2;
     private static final String TAG = "RtcClient";
 
     public void addListener(EventListener toAdd) {
         listeners.add(toAdd);
     }
 
+    public void close() {
+        if (peerDataChannel != null) {
+            peerDataChannel.close();
+            peerDataChannel.unregisterObserver();
+        }
+        if (peerDataChannel2 != null) {
+            peerDataChannel2.close();
+            peerDataChannel2.unregisterObserver();
+        }
+
+        if (peer != null)
+            peer.close();
+    }
+
     public void connectPeer() {
-        peerDataChannel = peer.createDataChannel("RTCDataChannel", new DataChannel.Init());
+        DataChannel.Init init = new DataChannel.Init();
+        peerDataChannel = peer.createDataChannel("kanal1", init);
         peerDataChannel.registerObserver(dataChannelObserver);
         MediaConstraints constraints = new MediaConstraints();
+
+        constraints.optional.add(new MediaConstraints.KeyValuePair("reliable", "false"));
         peer.createOffer(offerObserver, constraints);
     }
 
@@ -76,7 +103,16 @@ public class RtcClient {
     }
 
     public void sendPlay(DataChannel.Buffer buffer) {
-        peerDataChannel.send(buffer);
+        ByteBuffer buffer2 = ByteBuffer.wrap("message".getBytes());
+
+        if (peerDataChannel != null) {
+            Log.i("BrekBrek send status", peerDataChannel.state().name());
+            peerDataChannel.send(new DataChannel.Buffer(buffer2, false));
+        }
+        if (peerDataChannel2 != null) {
+            Log.i("BrekBrek send 2 status", peerDataChannel2.state().name());
+            peerDataChannel2.send(new DataChannel.Buffer(buffer2, false));
+        }
     }
 
     PeerConnection.Observer peerObserver = new PeerConnection.Observer() {
@@ -98,6 +134,9 @@ public class RtcClient {
         @Override
         public void onIceGatheringChange(PeerConnection.IceGatheringState iceGatheringState) {
             Log.d(TAG, "localPeerConnectionObserver onIceGatheringChange() " + iceGatheringState.name());
+            if (iceGatheringState == PeerConnection.IceGatheringState.COMPLETE) {
+
+            }
         }
 
         @Override
@@ -125,8 +164,12 @@ public class RtcClient {
         @Override
         public void onDataChannel(DataChannel dataChannel) {
             Log.d(TAG, "localPeerConnectionObserver onDataChannel()");
-            peerDataChannel = dataChannel;
-            peerDataChannel.registerObserver(dataChannelObserver);
+//            if (peerDataChannel != null) {
+//                peerDataChannel.close();
+//                peerDataChannel.unregisterObserver();
+//            }
+            peerDataChannel2 = dataChannel;
+            peerDataChannel2.registerObserver(dataChannelObserver2);
         }
 
         @Override
@@ -150,17 +193,17 @@ public class RtcClient {
 
         @Override
         public void onSetSuccess() {
-
+            Log.d(TAG, "offer onSetSuccess");
         }
 
         @Override
         public void onCreateFailure(String s) {
-
+            Log.d(TAG, "offer onCreateFailure " + s);
         }
 
         @Override
         public void onSetFailure(String s) {
-
+            Log.d(TAG, "offer onSetFailure " + s);
         }
     };
     SdpObserver answerObserver = new SdpObserver() {
@@ -174,19 +217,48 @@ public class RtcClient {
 
         @Override
         public void onSetSuccess() {
+            Log.d(TAG, "answer onSetSuccess");
 
         }
 
         @Override
         public void onCreateFailure(String s) {
+            Log.d(TAG, "answer onCreateFailure " + s);
 
         }
 
         @Override
         public void onSetFailure(String s) {
+            Log.d(TAG, "answer onSetFailure " + s);
 
         }
     };
+    DataChannel.Observer dataChannelObserver2 = new DataChannel.Observer() {
+
+        @Override
+        public void onBufferedAmountChange(long l) {
+
+        }
+
+        @Override
+        public void onStateChange() {
+            Log.d(TAG, "localDataChannelObserver2 onStateChange() " + peerDataChannel2.state().name());
+        }
+
+        @Override
+        public void onMessage(DataChannel.Buffer buffer) {
+            //Player.start();
+            //byte[] arr = buffer.data.array();
+            Log.i("BrekBrek get 2", "");
+            //Player.stream(arr);
+//            if (!buffer.binary) {
+//                int limit = buffer.data.limit();
+//                byte[] datas = new byte[limit];
+//                buffer.data.get(datas);
+//            }
+        }
+    };
+
     DataChannel.Observer dataChannelObserver = new DataChannel.Observer() {
 
         @Override
@@ -196,15 +268,15 @@ public class RtcClient {
 
         @Override
         public void onStateChange() {
-
+            Log.d(TAG, "localDataChannelObserver onStateChange() " + peerDataChannel.state().name());
         }
 
         @Override
         public void onMessage(DataChannel.Buffer buffer) {
-            Player.start();
-            byte[] arr = buffer.data.array();
-            Log.i("BrekBrek get", String.valueOf(arr.length));
-            Player.stream(arr);
+            //Player.start();
+            //byte[] arr = buffer.data.array();
+            Log.i("BrekBrek get", "");
+            //Player.stream(arr);
 //            if (!buffer.binary) {
 //                int limit = buffer.data.limit();
 //                byte[] datas = new byte[limit];

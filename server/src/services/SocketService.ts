@@ -93,6 +93,7 @@ export class SocketService {
   private static onMessage(channelId: string, contactId: string, message: ws.Data) {
     try {
       const data = JSON.parse(message.toString());
+      console.log(message)
       SocketService.sendTo(data, channelId, data.to, [contactId]);
     } catch (err) {
       console.error(err);

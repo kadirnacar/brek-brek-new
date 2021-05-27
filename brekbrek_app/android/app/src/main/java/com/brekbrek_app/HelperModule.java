@@ -53,6 +53,16 @@ public class HelperModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod(isBlockingSynchronousMethod = true)
+    public void stopRecord() {
+        Recorder.stop();
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public void startRecord() {
+        Recorder.start();
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
     public String getServiceStatus() {
         String status = "stopped";
         if (this.mBackgroundCallerService != null) {
@@ -90,9 +100,14 @@ public class HelperModule extends ReactContextBaseJavaModule {
         return false;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @ReactMethod
     public void stopService() {
         if (mServiceIntent != null) {
+            HelperModule.peers.forEach((key, value) -> {
+                value.close();
+            });
+            HelperModule.peers.clear();
             Recorder.stop();
             HelperModule.context.stopService(mServiceIntent);
         }

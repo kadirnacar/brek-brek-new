@@ -118,7 +118,7 @@ public class Recorder {
 
                         ByteBuffer byteBuffer =
                                 ByteBuffer.wrap(data);
-                        DataChannel.Buffer buffer = new DataChannel.Buffer(byteBuffer, true);
+                        DataChannel.Buffer buffer = new DataChannel.Buffer(byteBuffer, false);
                         HelperModule.sendData(buffer);
                     }
                 } catch (Exception ex) {

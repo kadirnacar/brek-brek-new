@@ -1,7 +1,7 @@
 import { NavigationProp, RouteProp } from '@react-navigation/core';
 import { encode } from 'base64-arraybuffer';
 import React, { Component } from 'react';
-import { FlatList, NativeModules, StyleSheet, View } from 'react-native';
+import { FlatList, NativeModules, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { FloatingAction } from 'react-native-floating-action';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import channelGrayIcon from '../../src/assets/channelgray.png';
@@ -157,7 +157,26 @@ export class ChannelScreenComp extends Component<Props, ChannelState> {
             );
           }}
         />
-
+        <TouchableOpacity
+          onPressIn={() => {
+            JavaJsModule.startRecord();
+          }}
+          onPressOut={() => {
+            JavaJsModule.stopRecord();
+          }}
+          style={{
+            alignContent: 'center',
+            alignItems: 'center',
+            alignSelf: 'center',
+            borderWidth: 1,
+            borderColor: Colors.white,
+            padding: 20,
+            borderRadius: 40,
+            width: 80,
+            height: 80,
+          }}>
+          <Icon name="microphone" size={30} color={Colors.white}></Icon>
+        </TouchableOpacity>
         <FloatingAction
           actions={[
             {

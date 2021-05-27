@@ -30,6 +30,14 @@ class JavaJsModule {
     return JavaJsModule.instance;
   }
 
+  public startRecord() {
+    HelperModule.startRecord();
+  }
+
+  public stopRecord() {
+    HelperModule.stopRecord();
+  }
+
   async callScript(message: any) {
     if (!this.user) {
       this.user = UserService.getSystemUser();
