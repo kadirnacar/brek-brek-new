@@ -12,8 +12,6 @@ import androidx.annotation.RequiresApi;
 
 import com.brekbrek_app.HelperModule;
 
-import org.webrtc.DataChannel;
-
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -118,8 +116,6 @@ public class Recorder {
 
                         ByteBuffer byteBuffer =
                                 ByteBuffer.wrap(data);
-                        DataChannel.Buffer buffer = new DataChannel.Buffer(byteBuffer, false);
-                        HelperModule.sendData(buffer);
                     }
                 } catch (Exception ex) {
                 } catch (Throwable throwable) {

@@ -46,7 +46,6 @@ export class SocketService {
     });
 
     SocketService.channelList[channelId][contactId] = { type: '', socket: socket, isAlive: true };
-    console.log(Object.keys(SocketService.channelList[channelId]));
 
     SocketService.sendTo({ type: 'connection', status: 'online', contactId }, channelId, null, [
       contactId,
@@ -93,7 +92,6 @@ export class SocketService {
   private static onMessage(channelId: string, contactId: string, message: ws.Data) {
     try {
       const data = JSON.parse(message.toString());
-      console.log(message)
       SocketService.sendTo(data, channelId, data.to, [contactId]);
     } catch (err) {
       console.error(err);

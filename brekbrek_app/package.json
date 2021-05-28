@@ -26,6 +26,7 @@
     "react-native-screens": "^3.1.1",
     "react-native-share": "^6.0.1",
     "react-native-vector-icons": "^8.1.0",
+    "react-native-webrtc": "file:./local_modules/react-native-webrtc",
     "realm": "^10.4.1",
     "reflect-metadata": "^0.1.13"
   },
