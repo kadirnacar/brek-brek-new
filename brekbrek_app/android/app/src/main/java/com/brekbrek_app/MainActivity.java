@@ -62,8 +62,6 @@ public class MainActivity extends ReactActivity {
                 Manifest.permission.RECORD_AUDIO)
                 == PackageManager.PERMISSION_GRANTED) {
 
-            Recorder.init();
-            Player.init();
         }
     }
 
@@ -77,8 +75,6 @@ public class MainActivity extends ReactActivity {
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // permission was granted, yay!
 
-                    Recorder.init();
-                    Player.init();
                 } else {
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.

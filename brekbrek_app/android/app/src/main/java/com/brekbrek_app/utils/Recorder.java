@@ -11,6 +11,8 @@ import android.util.Log;
 import androidx.annotation.RequiresApi;
 
 import com.brekbrek_app.HelperModule;
+import com.facebook.react.bridge.ReactApplicationContext;
+import com.oney.WebRTCModule.WebRTCModule;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -26,8 +28,10 @@ public class Recorder {
     private static final int NUM_CHANNELS = 1;
     private static boolean isRecording;
     private static int minBufSize;
+    private static ReactApplicationContext context;
 
-    public static void init() {
+    public static void init(ReactApplicationContext cntx) {
+        context = cntx;
         isRecording = false;
         minBufSize = AudioRecord.getMinBufferSize(SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO,
                 AudioFormat.ENCODING_PCM_16BIT);
@@ -113,9 +117,8 @@ public class Recorder {
                     int encoded = opusEncoder.encode(inBuf, FRAME_SIZE, encBuf);
                     if (encoded > 0) {
                         byte[] data = Arrays.copyOf(encBuf, encoded);
+                        context.getNativeModule(WebRTCModule.class).dataChannelSendBuffer(1, 1, data);
 
-                        ByteBuffer byteBuffer =
-                                ByteBuffer.wrap(data);
                     }
                 } catch (Exception ex) {
                 } catch (Throwable throwable) {

@@ -7,6 +7,7 @@ import { config } from './config';
 import { IHelperModule } from './IHelperModule';
 
 const HelperModule: IHelperModule = NativeModules.HelperModule;
+const WebRTCModule = NativeModules.WebRTCModule;
 
 class JavaJsModule {
   constructor() {
@@ -31,7 +32,7 @@ class JavaJsModule {
   }
 
   public startRecord() {
-    // HelperModule.startRecord();
+    HelperModule.startRecord();
     this.rtcConnection?.sendDataMessage('bastı');
   }
 

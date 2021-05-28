@@ -1,6 +1,7 @@
 package com.brekbrek_app;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
@@ -8,6 +9,8 @@ import android.os.Build;
 import android.provider.Settings;
 import android.support.v4.media.session.IMediaSession;
 import android.util.Log;
+
+import com.oney.WebRTCModule.WebRTCModule;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -52,8 +55,10 @@ public class HelperModule extends ReactContextBaseJavaModule {
         Recorder.stop();
     }
 
+
     @ReactMethod(isBlockingSynchronousMethod = true)
     public void startRecord() {
+        Log.i("BrekBrek", "deneme");
         Recorder.start();
     }
 
@@ -72,6 +77,7 @@ public class HelperModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void startService(String channelName, String channelId) {
+        Recorder.init(getReactApplicationContext());
         mBackgroundCallerService = new BackgroundCallerService();
         mServiceIntent = new Intent(HelperModule.context, mBackgroundCallerService.getClass());
         mServiceIntent.putExtra("ChannelName", channelName);
@@ -109,6 +115,7 @@ public class HelperModule extends ReactContextBaseJavaModule {
         if (jsModule == null) {
             jsModule = HelperModule.context.getJSModule(JavaJsModule.class);
         }
+
         jsModule.callScript(payload);
         payload = null;
         msg = null;

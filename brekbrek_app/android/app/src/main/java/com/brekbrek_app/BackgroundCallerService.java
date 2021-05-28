@@ -80,8 +80,6 @@ public class BackgroundCallerService extends Service {
             startForeground(1, this.notification);
         }
 
-        Recorder.init();
-        Player.init();
 
         HashMap param = new HashMap();
         param.put("type", "service");

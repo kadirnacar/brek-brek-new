@@ -183,6 +183,17 @@ class PeerConnectionObserver implements PeerConnection.Observer {
         }
     }
 
+    void dataChannelSendBuffer(int dataChannelId, byte[] data) {
+        DataChannel dataChannel = dataChannels.get(dataChannelId);
+        if (dataChannel != null) {
+            ByteBuffer byteBuffer = ByteBuffer.wrap(data);
+            DataChannel.Buffer buffer = new DataChannel.Buffer(byteBuffer, true);
+            dataChannel.send(buffer);
+        } else {
+            Log.d(TAG, "dataChannelSend() dataChannel is null");
+        }
+    }
+
     void dataChannelSend(int dataChannelId, String data, String type) {
         DataChannel dataChannel = dataChannels.get(dataChannelId);
         if (dataChannel != null) {
