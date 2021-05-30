@@ -10,14 +10,16 @@ import {
   RTCPeerConnectionConfiguration,
   RTCSessionDescriptionType,
 } from 'react-native-webrtc';
+import { UserService } from '../Services';
 
 export class RtcClient {
   constructor(id: string) {
     this.preparePeer(id);
   }
 
-  private peer: RTCPeerConnection;
-  private channel: RTCDataChannel;
+  private peer?: RTCPeerConnection;
+  private dataChannel?: RTCDataChannel;
+  private streamChannel?: RTCDataChannel;
   public onCandidate: (ice: RTCIceCandidateType) => void;
   public onReceiveStream: (stream: MediaStream) => void;
   public onMessage: (event: any) => void;
@@ -34,21 +36,26 @@ export class RtcClient {
 
   private preparePeer(id: string) {
     this.peer = new RTCPeerConnection(this.rtcOptions);
-    this.channel = this.peer.createDataChannel(id);
+    this.dataChannel = this.peer.createDataChannel('data');
+    this.streamChannel = this.peer.createDataChannel('stream', { ordered: true });
 
-    this.channel.onopen = (event) => {
-      if (this.onDataChannelOpen) {
-        this.onDataChannelOpen(event);
-      }
-    };
-
-    this.channel.onmessage = (event) => {
+    this.dataChannel.onmessage = (event) => {
       if (this.onMessage) {
         this.onMessage(event);
       }
     };
+    const user = UserService.getSystemUser();
 
     this.peer.onicecandidate = this.onIceCandidate.bind(this);
+    this.peer.oniceconnectionstatechange = (event) => {
+      if (event.target.iceConnectionState === 'connected' && this.onDataChannelOpen) {
+        this.onDataChannelOpen(event);
+      }
+      console.log(user?.Name, 'oniceconnectionstatechange', event.target.iceConnectionState);
+    };
+    this.peer.onconnectionstatechange = () => {
+      console.log(user?.Name, 'onconnectionstatechange', this.peer?.signalingState);
+    };
   }
 
   private onIceCandidate(ev: EventOnCandidate) {
@@ -57,50 +64,64 @@ export class RtcClient {
     }
   }
 
-  public async connectPeer(): Promise<RTCSessionDescriptionType> {
-    const offer = await this.peer.createOffer(this.offerOptions);
-    this.peer.onaddstream = (ev: EventOnAddStream) => {
-      if (this.onReceiveStream) {
-        this.onReceiveStream(ev.stream);
-      }
-    };
+  public async connectPeer(): Promise<RTCSessionDescriptionType | undefined> {
+    let offer;
+    if (this.peer) {
+      offer = await this.peer.createOffer(this.offerOptions);
+      this.peer.onaddstream = (ev: EventOnAddStream) => {
+        if (this.onReceiveStream) {
+          this.onReceiveStream(ev.stream);
+        }
+      };
 
-    await this.peer.setLocalDescription(offer);
+      await this.peer.setLocalDescription(offer);
+    }
     return offer;
   }
 
   public async addCandidate(ice: RTCIceCandidateType) {
-    let candidate = new RTCIceCandidate(ice);
-    await this.peer.addIceCandidate(candidate);
+    if (this.peer) {
+      let candidate = new RTCIceCandidate(ice);
+      await this.peer.addIceCandidate(candidate);
+    }
   }
 
   public addStream(strm: MediaStream) {
-    this.peer.addStream(strm);
+    if (this.peer) {
+      this.peer.addStream(strm);
+    }
   }
 
-  public async createAnswer(data: RTCSessionDescriptionType): Promise<RTCSessionDescriptionType> {
-    await this.peer.setRemoteDescription(data);
-    const answer = await this.peer.createAnswer(this.offerOptions);
-    await this.peer.setLocalDescription(answer);
+  public async createAnswer(
+    data: RTCSessionDescriptionType
+  ): Promise<RTCSessionDescriptionType | undefined> {
+    let answer;
+    if (this.peer) {
+      await this.peer.setRemoteDescription(data);
+      answer = await this.peer.createAnswer(this.offerOptions);
+      await this.peer.setLocalDescription(answer);
+    }
     return answer;
   }
 
   public async setAnswer(data: RTCSessionDescriptionType) {
-    await this.peer.setRemoteDescription(data);
-  }
-  private str2ab(str: string) {
-    var buf = new ArrayBuffer(str.length * 2); // 2 bytes for each char
-    var bufView = new Uint16Array(buf);
-    for (var i = 0, strLen = str.length; i < strLen; i++) {
-      bufView[i] = str.charCodeAt(i);
+    if (this.peer) {
+      await this.peer.setRemoteDescription(data);
     }
-    return buf;
   }
+
   public sendDataMessage(data: any) {
-    this.channel.send(JSON.stringify({ data }));
+    if (this.dataChannel) {
+      this.dataChannel.send(JSON.stringify({ data }));
+    }
   }
+
   public close() {
-    this.channel.close();
-    this.peer.close();
+    if (this.dataChannel) this.dataChannel.close();
+    if (this.streamChannel) this.streamChannel.close();
+    if (this.peer) this.peer.close();
+    this.peer = undefined;
+    this.dataChannel = undefined;
+    this.streamChannel = undefined;
   }
 }

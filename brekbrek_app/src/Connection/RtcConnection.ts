@@ -16,17 +16,29 @@ export class RtcConnection {
   public onReceiveStream: (clientId: string, stream: MediaStream) => void;
 
   public onMessage: (message: any) => Promise<void>;
+  public onPeerConnectionCompleted: () => Promise<void>;
 
   public getClientId() {
     return this.socketId;
   }
 
-  public async connectServer() {
+  private autoReconnect: boolean;
+
+  public async connectServer(reconnect?: boolean) {
     return new Promise((resolve, reject) => {
       this.socket = new WebSocket(this.serverUrl);
+      if (!reconnect) {
+        this.autoReconnect = true;
+      }
+      this.socket.onclose = (event) => {
+        console.log(this.user?.Name, 'onsocketclose', event.message);
+        // this.disconnectServer(true);
+      };
 
-      this.socket.onclose = this.disconnectServer.bind(this);
-      this.socket.onerror = this.disconnectServer.bind(this);
+      this.socket.onerror = (event) => {
+        console.log(this.user?.Name, 'onsocketerror', event.message);
+        this.onError();
+      };
 
       this.socket.onmessage = async (ev) => {
         await this.onSocketMessage(
@@ -90,10 +102,17 @@ export class RtcConnection {
     }
   }
 
+  public onError() {
+    if (this.autoReconnect) {
+      this.connectServer(true);
+    }
+  }
+
   public disconnectServer() {
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+    if (this.socket) {
       this.socket.close();
     }
+
     this.socketId = '';
     Object.keys(this.peers).forEach((x) => {
       this.peers[x].close();
@@ -104,6 +123,12 @@ export class RtcConnection {
   private createPeer(peerId: string) {
     const peer = new RtcClient(peerId);
 
+    peer.onDataChannelOpen = async () => {
+      if (this.onPeerConnectionCompleted) {
+        await this.onPeerConnectionCompleted();
+      }
+    };
+    
     peer.onCandidate = (ice: RTCIceCandidateType) => {
       this.socket.send(
         JSON.stringify({
@@ -116,7 +141,7 @@ export class RtcConnection {
     };
 
     peer.onMessage = (event: any) => {
-      
+      console.log(this.user?.Name, 'message come', event.data);
     };
 
     peer.onReceiveStream = (stream: MediaStream) => {

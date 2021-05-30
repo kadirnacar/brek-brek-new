@@ -1,8 +1,11 @@
 package com.oney.WebRTCModule;
 
 import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
 
 import androidx.annotation.Nullable;
+
 import android.util.Base64;
 
 import com.facebook.react.bridge.Arguments;
@@ -31,14 +34,14 @@ class DataChannelObserver implements DataChannel.Observer {
     @Nullable
     private String dataChannelStateString(DataChannel.State dataChannelState) {
         switch (dataChannelState) {
-        case CONNECTING:
-            return "connecting";
-        case OPEN:
-            return "open";
-        case CLOSING:
-            return "closing";
-        case CLOSED:
-            return "closed";
+            case CONNECTING:
+                return "connecting";
+            case OPEN:
+                return "open";
+            case CLOSING:
+                return "closing";
+            case CLOSED:
+                return "closed";
         }
         return null;
     }
@@ -49,6 +52,15 @@ class DataChannelObserver implements DataChannel.Observer {
 
     @Override
     public void onMessage(DataChannel.Buffer buffer) {
+        String label = mDataChannel.label();
+        if (label.equals("stream")) {
+            for (Map.Entry<String, DataChannelEventListener> entry : this.webRTCModule.dataChannelEventListeners.entrySet()) {
+                DataChannelEventListener value = entry.getValue();
+                value.onDataMessage(buffer);
+            }
+            return;
+        }
+
         WritableMap params = Arguments.createMap();
         params.putInt("id", mId);
         params.putInt("peerConnectionId", peerConnectionId);

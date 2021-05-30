@@ -40,6 +40,7 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
      * in order to reduce complexity and to (somewhat) separate concerns.
      */
     private GetUserMediaImpl getUserMediaImpl;
+    public HashMap<String, DataChannelEventListener> dataChannelEventListeners = new HashMap<String, DataChannelEventListener>();
 
     public static class Options {
         private VideoEncoderFactory videoEncoderFactory = null;
@@ -962,25 +963,35 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
         }
     }
 
-    @ReactMethod
-    public void dataChannelSend(int peerConnectionId,
-                                int dataChannelId,
-                                String data,
-                                String type) {
-        ThreadUtils.runOnExecutor(() ->
-                dataChannelSendAsync(peerConnectionId, dataChannelId, data, type));
+    public void dataChannelSendAllData(String data,
+                                       String type) {
+        for (int i = 0; i < mPeerConnectionObservers.size(); i++) {
+            int id = mPeerConnectionObservers.keyAt(i);
+            dataChannelSendData(id, data, type);
+        }
+    }
+
+    public void addAllDataChannelMessageListener(String name, DataChannelEventListener listener) {
+        for (int i = 0; i < mPeerConnectionObservers.size(); i++) {
+            dataChannelEventListeners.put(name, listener);
+        }
+    }
+
+    public void dataChannelSendAllStream(byte[] data) {
+        for (int i = 0; i < mPeerConnectionObservers.size(); i++) {
+            int id = mPeerConnectionObservers.keyAt(i);
+            dataChannelSendStream(id, data);
+        }
     }
 
     @ReactMethod
-    public void dataChannelSendBuffer(int peerConnectionId,
-                                int dataChannelId,
-                                byte[] data) {
+    public void dataChannelSendStream(int peerConnectionId,
+                                      byte[] data) {
         ThreadUtils.runOnExecutor(() ->
-                dataChannelSendBufferAsync(peerConnectionId, dataChannelId, data));
+                dataChannelSendStreamAsync(peerConnectionId, data));
     }
 
-    private void dataChannelSendBufferAsync(int peerConnectionId,
-                                            int dataChannelId,
+    private void dataChannelSendStreamAsync(int peerConnectionId,
                                             byte[] data) {
         // Forward to PeerConnectionObserver which deals with DataChannels
         // because DataChannel is owned by PeerConnection.
@@ -989,8 +1000,39 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
         if (pco == null || pco.getPeerConnection() == null) {
             Log.d(TAG, "dataChannelSend() peerConnection is null");
         } else {
-            pco.dataChannelBufferSend(dataChannelId, data);
+            pco.dataChannelSendStream(data);
         }
+    }
+
+    @ReactMethod
+    public void dataChannelSendData(int peerConnectionId,
+                                    String data,
+                                    String type) {
+        ThreadUtils.runOnExecutor(() ->
+                dataChannelSendDataAsync(peerConnectionId, data, type));
+    }
+
+    private void dataChannelSendDataAsync(int peerConnectionId,
+                                          String data,
+                                          String type) {
+        // Forward to PeerConnectionObserver which deals with DataChannels
+        // because DataChannel is owned by PeerConnection.
+        PeerConnectionObserver pco
+                = mPeerConnectionObservers.get(peerConnectionId);
+        if (pco == null || pco.getPeerConnection() == null) {
+            Log.d(TAG, "dataChannelSend() peerConnection is null");
+        } else {
+            pco.dataChannelSendData(data, type);
+        }
+    }
+
+    @ReactMethod
+    public void dataChannelSend(int peerConnectionId,
+                                int dataChannelId,
+                                String data,
+                                String type) {
+        ThreadUtils.runOnExecutor(() ->
+                dataChannelSendAsync(peerConnectionId, dataChannelId, data, type));
     }
 
     private void dataChannelSendAsync(int peerConnectionId,

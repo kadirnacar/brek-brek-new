@@ -10,6 +10,8 @@ import android.provider.Settings;
 import android.support.v4.media.session.IMediaSession;
 import android.util.Log;
 
+import com.brekbrek_app.utils.Player;
+import com.oney.WebRTCModule.DataChannelEventListener;
 import com.oney.WebRTCModule.WebRTCModule;
 
 import androidx.annotation.NonNull;
@@ -63,6 +65,25 @@ public class HelperModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod(isBlockingSynchronousMethod = true)
+    public void registerPlayerListener() {
+        context.getNativeModule(WebRTCModule.class).addAllDataChannelMessageListener("player", new DataChannelEventListener() {
+            @Override
+            public void onDataMessage(org.webrtc.DataChannel.Buffer buffer) {
+                byte[] bytes;
+                if (buffer.data.hasArray()) {
+                    bytes = buffer.data.array();
+                } else {
+                    bytes = new byte[buffer.data.remaining()];
+                    buffer.data.get(bytes);
+                }
+                Log.i("BrekBrek", String.valueOf(bytes.length));
+
+                Player.stream(bytes);
+            }
+        });
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
     public String getServiceStatus() {
         String status = "stopped";
         if (mBackgroundCallerService != null) {
@@ -78,6 +99,8 @@ public class HelperModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void startService(String channelName, String channelId) {
         Recorder.init(getReactApplicationContext());
+        Player.init();
+        Player.start();
         mBackgroundCallerService = new BackgroundCallerService();
         mServiceIntent = new Intent(HelperModule.context, mBackgroundCallerService.getClass());
         mServiceIntent.putExtra("ChannelName", channelName);
@@ -106,6 +129,7 @@ public class HelperModule extends ReactContextBaseJavaModule {
     public void stopService() {
         if (mServiceIntent != null) {
             Recorder.stop();
+            Player.stop();
             HelperModule.context.stopService(mServiceIntent);
         }
     }

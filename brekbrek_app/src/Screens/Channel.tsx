@@ -47,21 +47,21 @@ export class ChannelScreenComp extends Component<Props, ChannelState> {
       const contact = UserService.getUser(params.id);
 
       if (contact) {
-        this.props.navigation.setOptions({
-          headerLeft: (propss: any) => (
-            <HeaderLabel
-              navigation={this.props.navigation}
-              name={contact.Name}
-              image={
-                contact.Image
-                  ? {
-                      uri: `data:image/png;base64,${encode(contact.Image)}`,
-                    }
-                  : noAvatar
-              }
-            />
-          ),
-        });
+        // this.props.navigation.setOptions({
+        //   headerLeft: (propss: any) => (
+        //     <HeaderLabel
+        //       navigation={this.props.navigation}
+        //       name={contact.Name}
+        //       image={
+        //         contact.Image
+        //           ? {
+        //               uri: `data:image/png;base64,${encode(contact.Image)}`,
+        //             }
+        //           : noAvatar
+        //       }
+        //     />
+        //   ),
+        // });
 
         this.setState({ contacts: [contact] });
         HelperModule.startService(contact.Name || '', `${user?.refId}/${contact.refId}`);
@@ -69,21 +69,21 @@ export class ChannelScreenComp extends Component<Props, ChannelState> {
     } else if (params.type == 'Channel') {
       const channel = ChannelService.get(params.id);
       if (channel) {
-        this.props.navigation.setOptions({
-          headerLeft: (propss: any) => (
-            <HeaderLabel
-              navigation={this.props.navigation}
-              name={channel.Name}
-              image={
-                channel.Image
-                  ? {
-                      uri: `data:image/png;base64,${encode(channel.Image)}`,
-                    }
-                  : channelGrayIcon
-              }
-            />
-          ),
-        });
+        // this.props.navigation.setOptions({
+        //   headerLeft: (propss: any) => (
+        //     <HeaderLabel
+        //       navigation={this.props.navigation}
+        //       name={channel.Name}
+        //       image={
+        //         channel.Image
+        //           ? {
+        //               uri: `data:image/png;base64,${encode(channel.Image)}`,
+        //             }
+        //           : channelGrayIcon
+        //       }
+        //     />
+        //   ),
+        // });
 
         if (channel.Contacts) {
           this.setState({ contacts: channel.Contacts });
@@ -99,6 +99,7 @@ export class ChannelScreenComp extends Component<Props, ChannelState> {
   }
 
   navigationRefresh(e: any) {
+    const d = UserService.getSystemUser();
     if (this.props.route.params?.contactId) {
       const { onlines } = this.state;
       if (this.props.route.params?.status == 'online') {

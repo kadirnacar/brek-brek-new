@@ -22,8 +22,8 @@ public class Recorder {
     private static AudioRecord audioRecord;
     private static Thread recordingThread;
     private static Thread encodingThread;
-    private static final int SAMPLE_RATE = 16000;
-    private static int FRAME_SIZE = 160;
+    private static final int SAMPLE_RATE = 48000;
+    private static int FRAME_SIZE = 960;
     private static OpusEncoder opusEncoder;
     private static final int NUM_CHANNELS = 1;
     private static boolean isRecording;
@@ -94,7 +94,7 @@ public class Recorder {
     @RequiresApi(api = Build.VERSION_CODES.N)
     private static void recording() {
         byte[] inBuf = new byte[FRAME_SIZE * NUM_CHANNELS * 2];
-        byte[] encBuf = new byte[FRAME_SIZE * 2];
+        byte[] encBuf = new byte[FRAME_SIZE];
 
         while (isRecording) {
 
@@ -117,9 +117,9 @@ public class Recorder {
                     int encoded = opusEncoder.encode(inBuf, FRAME_SIZE, encBuf);
                     if (encoded > 0) {
                         byte[] data = Arrays.copyOf(encBuf, encoded);
-                        context.getNativeModule(WebRTCModule.class).dataChannelSendBuffer(1, 1, data);
-
+                        context.getNativeModule(WebRTCModule.class).dataChannelSendAllStream(data);
                     }
+
                 } catch (Exception ex) {
                 } catch (Throwable throwable) {
                     throwable.printStackTrace();

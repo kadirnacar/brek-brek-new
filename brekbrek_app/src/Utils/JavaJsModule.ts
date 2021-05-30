@@ -37,7 +37,7 @@ class JavaJsModule {
   }
 
   public stopRecord() {
-    // HelperModule.stopRecord();
+    HelperModule.stopRecord();
   }
 
   async callScript(message: any) {
@@ -54,9 +54,15 @@ class JavaJsModule {
   }
 
   private async startRtcConnection(channelId: string) {
+    this.stopRtcConnection();
     this.rtcConnection = new RtcConnection(`${config.socketUrl}/${channelId}`);
 
+    this.rtcConnection.onPeerConnectionCompleted = async () => {
+      HelperModule.registerPlayerListener();
+    };
+
     this.rtcConnection.connectServer();
+
     this.rtcConnection.onMessage = async (msg) => {
       if (msg.type && (msg.type == 'connection' || 'peers')) {
         try {
@@ -71,8 +77,8 @@ class JavaJsModule {
   private stopRtcConnection() {
     if (this.rtcConnection) {
       this.rtcConnection.disconnectServer();
-      this.rtcConnection = undefined;
     }
+    this.rtcConnection = undefined;
   }
 }
 export default JavaJsModule.getInstance();

@@ -7,7 +7,7 @@ import { RealmService } from '../realm/RealmService';
 
 interface ChannelList {
   [key: string]: {
-    [key: string]: { socket: ws; type?: string; isAlive?: boolean; interval?: any};
+    [key: string]: { socket: ws; type?: string; isAlive?: boolean; interval?: any };
   };
 }
 export class SocketService {
@@ -36,7 +36,6 @@ export class SocketService {
     if (!SocketService.channelList[channelId]) {
       channelId = pathParams.reverse().join('');
     }
-
     if (!SocketService.channelList[channelId]) {
       SocketService.channelList[channelId] = {};
     }
@@ -46,6 +45,14 @@ export class SocketService {
     });
 
     SocketService.channelList[channelId][contactId] = { type: '', socket: socket, isAlive: true };
+    console.log(
+      Object.keys(SocketService.channelList).map((x) => {
+        return {
+          channelId: x,
+          contacts: Object.keys(SocketService.channelList[x]),
+        };
+      })
+    );
 
     SocketService.sendTo({ type: 'connection', status: 'online', contactId }, channelId, null, [
       contactId,
@@ -100,16 +107,26 @@ export class SocketService {
 
   private static onClose(channelId: string, contactId: string, code: any) {
     if (SocketService.channelList[channelId]) {
+      SocketService.channelList[channelId][contactId] = null;
       delete SocketService.channelList[channelId][contactId];
 
       if (Object.keys(SocketService.channelList[channelId]).length == 0) {
         delete SocketService.channelList[channelId];
-      } 
+      }
       SocketService.sendTo(
         { type: 'connection', status: 'offline', contactId: contactId },
         channelId
       );
     }
+    console.log(
+      'close',
+      Object.keys(SocketService.channelList).map((x) => {
+        return {
+          channelId: x,
+          contacts: Object.keys(SocketService.channelList[x]),
+        };
+      })
+    );
   }
 
   public static sendTo(message: any, channelId: string, contactId?: string, ignore?: string[]) {

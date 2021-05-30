@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import androidx.annotation.Nullable;
+
 import android.util.Base64;
 import android.util.Log;
 import android.util.SparseArray;
@@ -28,7 +29,6 @@ import org.webrtc.MediaStream;
 import org.webrtc.MediaStreamTrack;
 import org.webrtc.PeerConnection;
 import org.webrtc.RtpReceiver;
-import org.webrtc.StatsObserver;
 import org.webrtc.StatsReport;
 import org.webrtc.VideoTrack;
 
@@ -36,7 +36,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
     private final static String TAG = WebRTCModule.TAG;
 
     private final SparseArray<DataChannel> dataChannels
-        = new SparseArray<DataChannel>();
+            = new SparseArray<DataChannel>();
     private final int id;
     private PeerConnection peerConnection;
     final List<MediaStream> localStreams;
@@ -52,7 +52,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
      * buffer in an attempt to improve performance.
      */
     private SoftReference<StringBuilder> statsToJSONStringBuilder
-        = new SoftReference<>(null);
+            = new SoftReference<>(null);
 
     PeerConnectionObserver(WebRTCModule webRTCModule, int id) {
         this.webRTCModule = webRTCModule;
@@ -68,7 +68,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
      * <tt>PeerConnection</tt>.
      *
      * @param localStream the local <tt>MediaStream</tt> to add to the
-     * associated <tt>PeerConnection</tt>
+     *                    associated <tt>PeerConnection</tt>
      * @return <tt>true</tt> if the specified <tt>localStream</tt> was added to
      * the associated <tt>PeerConnection</tt>; otherwise, <tt>false</tt>
      */
@@ -87,7 +87,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
      * <tt>PeerConnection</tt>.
      *
      * @param localStream the local <tt>MediaStream</tt> from the associated
-     * <tt>PeerConnection</tt>
+     *                    <tt>PeerConnection</tt>
      * @return <tt>true</tt> if removing the specified <tt>mediaStream</tt> from
      * this instance resulted in a modification of its internal list of local
      * <tt>MediaStream</tt>s; otherwise, <tt>false</tt>
@@ -183,14 +183,71 @@ class PeerConnectionObserver implements PeerConnection.Observer {
         }
     }
 
-    void dataChannelSendBuffer(int dataChannelId, byte[] data) {
-        DataChannel dataChannel = dataChannels.get(dataChannelId);
+    private DataChannel streamDataChannel;
+    private DataChannel dataDataChannel;
+
+    DataChannel getDataDataChannel() {
+        DataChannel dc;
+        if (dataDataChannel == null) {
+            for (int i = 0; i < dataChannels.size(); i++) {
+                dc = dataChannels.valueAt(i);
+                String label = dc.label();
+                if (label.equals("data")) {
+                    dataDataChannel = dc;
+                }
+            }
+        }
+        return dataDataChannel;
+    }
+
+
+    @Nullable
+    private String dataChannelStateString(DataChannel.State dataChannelState) {
+        switch (dataChannelState) {
+            case CONNECTING:
+                return "connecting";
+            case OPEN:
+                return "open";
+            case CLOSING:
+                return "closing";
+            case CLOSED:
+                return "closed";
+        }
+        return null;
+    }
+
+    DataChannel getStreamDataChannel() {
+        DataChannel dc;
+        if (streamDataChannel == null) {
+            for (int i = 0; i < dataChannels.size(); i++) {
+                dc = dataChannels.valueAt(i);
+                String label = dc.label();
+                int mId = dc.id();
+                if (label.equals("stream")) {
+                    streamDataChannel = dc;
+                }
+            }
+        }
+        return streamDataChannel;
+    }
+
+    void dataChannelSendData(String data, String type) {
+        DataChannel dataChannel = getDataDataChannel();
+        if (dataChannel != null) {
+            dataChannelSend(dataChannel.id(), data, type);
+        } else {
+            Log.d(TAG, "dataChannelSendData() dataChannel is null");
+        }
+    }
+
+    void dataChannelSendStream(byte[] data) {
+        DataChannel dataChannel = getStreamDataChannel();
         if (dataChannel != null) {
             ByteBuffer byteBuffer = ByteBuffer.wrap(data);
             DataChannel.Buffer buffer = new DataChannel.Buffer(byteBuffer, true);
             dataChannel.send(buffer);
         } else {
-            Log.d(TAG, "dataChannelSend() dataChannel is null");
+            Log.d(TAG, "dataChannelSendStream() dataChannel is null");
         }
     }
 
@@ -219,7 +276,8 @@ class PeerConnectionObserver implements PeerConnection.Observer {
         }
     }
 
-    @SuppressWarnings("deprecation") // TODO(saghul): getStats is deprecated.
+    @SuppressWarnings("deprecation")
+        // TODO(saghul): getStats is deprecated.
     void getStats(String trackId, final Callback cb) {
         MediaStreamTrack track = null;
         if (trackId == null
@@ -227,7 +285,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
                 || (track = webRTCModule.getLocalTrack(trackId)) != null
                 || (track = remoteTracks.get(trackId)) != null) {
             peerConnection.getStats(
-                reports -> cb.invoke(true, statsToJSON(reports)),
+                    reports -> cb.invoke(true, statsToJSON(reports)),
                     track);
         } else {
             Log.e(TAG, "peerConnectionGetStats() MediaStreamTrack not found for id: " + trackId);
@@ -245,7 +303,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
      * <tt>StatsReport</tt>s.
      *
      * @param reports the array of <tt>StatsReport</tt>s to represent in JSON
-     * format
+     *                format
      * @return a <tt>String</tt> which represents the specified <tt>reports</tt>
      * in JSON format
      */
@@ -267,9 +325,9 @@ class PeerConnectionObserver implements PeerConnection.Observer {
                 s.append(',');
             }
             s.append("{\"id\":\"").append(report.id)
-                .append("\",\"type\":\"").append(report.type)
-                .append("\",\"timestamp\":").append(report.timestamp)
-                .append(",\"values\":[");
+                    .append("\",\"type\":\"").append(report.type)
+                    .append("\",\"timestamp\":").append(report.timestamp)
+                    .append(",\"values\":[");
             StatsReport.Value[] values = report.values;
             final int valueCount = values.length;
             for (int j = 0; j < valueCount; ++j) {
@@ -278,7 +336,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
                     s.append(',');
                 }
                 s.append("{\"").append(v.name).append("\":\"").append(v.value)
-                    .append("\"}");
+                        .append("\"}");
             }
             s.append("]}");
         }
@@ -336,8 +394,8 @@ class PeerConnectionObserver implements PeerConnection.Observer {
 
     private String getReactTagForStream(MediaStream mediaStream) {
         for (Iterator<Map.Entry<String, MediaStream>> i
-                    = remoteStreams.entrySet().iterator();
-                i.hasNext();) {
+             = remoteStreams.entrySet().iterator();
+             i.hasNext(); ) {
             Map.Entry<String, MediaStream> e = i.next();
             if (e.getValue().equals(mediaStream)) {
                 return e.getKey();
@@ -416,8 +474,8 @@ class PeerConnectionObserver implements PeerConnection.Observer {
         String streamReactTag = getReactTagForStream(mediaStream);
         if (streamReactTag == null) {
             Log.w(TAG,
-                "onRemoveStream - no remote stream for id: "
-                    + mediaStream.getId());
+                    "onRemoveStream - no remote stream for id: "
+                            + mediaStream.getId());
             return;
         }
 
@@ -441,7 +499,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
     public void onDataChannel(DataChannel dataChannel) {
         final int dataChannelId = dataChannel.id();
         if (-1 == dataChannelId) {
-          return;
+            return;
         }
 
         WritableMap dataChannelParams = Arguments.createMap();
@@ -462,7 +520,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
         // unregister, so the observer is registered here and is never
         // unregistered
         dataChannel.registerObserver(
-            new DataChannelObserver(webRTCModule, id, dcId, dataChannel));
+                new DataChannelObserver(webRTCModule, id, dcId, dataChannel));
     }
 
     @Override
