@@ -13,8 +13,6 @@ import android.os.IBinder;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
-import com.brekbrek_app.utils.Player;
-import com.brekbrek_app.utils.Recorder;
 import com.brekbrek_app.utils.VolumeKeyController;
 
 import java.util.HashMap;
@@ -93,8 +91,6 @@ public class BackgroundCallerService extends Service {
     @Override
     public void onDestroy() {
         this.mVolumeKeyController.destroy();
-        Recorder.stop();
-        Player.stop();
         HashMap param = new HashMap();
         param.put("type", "service");
         param.put("status", 0);

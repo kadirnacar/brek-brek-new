@@ -1,19 +1,13 @@
 package com.brekbrek_app;
 
 import android.Manifest;
-import android.app.ActivityManager;
-import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.widget.Toast;
 
-import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.brekbrek_app.utils.Player;
-import com.brekbrek_app.utils.Recorder;
 import com.facebook.react.ReactActivity;
 
 public class MainActivity extends ReactActivity {

@@ -7,7 +7,6 @@ import { config } from './config';
 import { IHelperModule } from './IHelperModule';
 
 const HelperModule: IHelperModule = NativeModules.HelperModule;
-const WebRTCModule = NativeModules.WebRTCModule;
 
 class JavaJsModule {
   constructor() {
@@ -32,12 +31,12 @@ class JavaJsModule {
   }
 
   public startRecord() {
-    HelperModule.startRecord();
+    console.log("startRecord not implemented")
     this.rtcConnection?.sendDataMessage('bastı');
   }
 
   public stopRecord() {
-    HelperModule.stopRecord();
+    console.log("stopRecord not implemented")
   }
 
   async callScript(message: any) {
@@ -58,7 +57,7 @@ class JavaJsModule {
     this.rtcConnection = new RtcConnection(`${config.socketUrl}/${channelId}`);
 
     this.rtcConnection.onPeerConnectionCompleted = async () => {
-      HelperModule.registerPlayerListener();
+      // HelperModule.registerPlayerListener();
     };
 
     this.rtcConnection.connectServer();

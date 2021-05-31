@@ -1,19 +1,10 @@
 package com.brekbrek_app.utils;
 
 import android.content.Context;
-import android.content.Intent;
-import android.media.AudioManager;
-import android.os.Bundle;
-import android.os.ResultReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.view.KeyEvent;
 
 import androidx.media.VolumeProviderCompat;
-
-import com.brekbrek_app.HelperModule;
-
-import java.util.HashMap;
 
 public class VolumeKeyController {
 
@@ -43,10 +34,10 @@ public class VolumeKeyController {
             public void onAdjustVolume(int direction) {
                 if (direction == 0) {
                     state = 0;
-                    Recorder.stop();
+//                    Recorder.stop();
                 } else if (direction != state) {
                     state = direction;
-                    Recorder.start();
+//                    Recorder.start();
                 }
             }
         };

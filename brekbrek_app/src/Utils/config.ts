@@ -1,5 +1,5 @@
 export const config = {
-  serverUrl: 'http://192.168.0.12:3001',
+  serverUrl: 'http://172.16.1.54:3010',
   inviteUrl: 'http://brekbrek.kadirnacar.com/invite',
-  socketUrl: 'ws://192.168.0.12:3001',
+  socketUrl: 'ws://172.16.1.54:3010',
 };

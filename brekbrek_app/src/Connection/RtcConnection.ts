@@ -1,4 +1,4 @@
-import { MediaStream, RTCIceCandidateType, RTCSessionDescriptionType } from 'react-native-webrtc';
+import { MediaStream, RTCIceCandidateType } from 'react-native-webrtc';
 import { Users } from '../Models';
 import { UserService } from '../Services';
 import { RtcClient } from './RtcClient';
@@ -128,7 +128,7 @@ export class RtcConnection {
         await this.onPeerConnectionCompleted();
       }
     };
-    
+
     peer.onCandidate = (ice: RTCIceCandidateType) => {
       this.socket.send(
         JSON.stringify({
