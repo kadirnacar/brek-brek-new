@@ -5,6 +5,13 @@ import { Users } from '../Models';
 import { UserService } from '../Services';
 import { config } from './config';
 import { IHelperModule } from './IHelperModule';
+import {
+  RTCView,
+  mediaDevices,
+  MediaStream,
+  MediaStreamConstraints,
+  RTCPeerConnection,
+} from 'react-native-webrtc';
 
 const HelperModule: IHelperModule = NativeModules.HelperModule;
 
@@ -30,13 +37,17 @@ class JavaJsModule {
     return JavaJsModule.instance;
   }
 
-  public startRecord() {
-    console.log("startRecord not implemented")
+  public async startRecord() {
     this.rtcConnection?.sendDataMessage('bastı');
+    // const newStream: any = await mediaDevices.getUserMedia({
+    //   audio: true,
+    //   video: false,
+    // });
+    // this.rtcConnection?.addStream(newStream);
   }
 
   public stopRecord() {
-    console.log("stopRecord not implemented")
+    console.log('stopRecord not implemented');
   }
 
   async callScript(message: any) {

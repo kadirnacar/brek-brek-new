@@ -1,3 +1,4 @@
+import { mediaDevices } from 'react-native-webrtc';
 import {
   EventOnAddStream,
   EventOnCandidate,
@@ -30,14 +31,25 @@ export class RtcClient {
   };
 
   private offerOptions: RTCOfferOptions = {
-    offerToReceiveAudio: false,
-    offerToReceiveVideo: true,
+    offerToReceiveAudio: true,
+    offerToReceiveVideo: false,
   };
 
-  private preparePeer(id: string) {
+  private async preparePeer(id: string) {
     this.peer = new RTCPeerConnection(this.rtcOptions);
     this.dataChannel = this.peer.createDataChannel('data');
     this.streamChannel = this.peer.createDataChannel('stream', { ordered: true });
+
+    const newStream: any = await mediaDevices.getUserMedia({
+      audio: true,
+      video: false,
+    });
+    this.peer.addStream(newStream);
+
+    this.peer.onaddstream = (event) => {
+      const user = UserService.getSystemUser();
+      console.log('addStream', user?.Name, event.stream.active);
+    };
 
     this.dataChannel.onmessage = (event) => {
       if (this.onMessage) {
@@ -68,11 +80,11 @@ export class RtcClient {
     let offer;
     if (this.peer) {
       offer = await this.peer.createOffer(this.offerOptions);
-      this.peer.onaddstream = (ev: EventOnAddStream) => {
-        if (this.onReceiveStream) {
-          this.onReceiveStream(ev.stream);
-        }
-      };
+      // this.peer.onaddstream = (ev: EventOnAddStream) => {
+      //   if (this.onReceiveStream) {
+      //     this.onReceiveStream(ev.stream);
+      //   }
+      // };
 
       await this.peer.setLocalDescription(offer);
     }

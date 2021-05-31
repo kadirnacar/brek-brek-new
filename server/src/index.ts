@@ -7,7 +7,7 @@ import App from './server';
 
 LoggerService.init();
 
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 3010;
 App.set('port', port);
 
 const httpsOptions = {

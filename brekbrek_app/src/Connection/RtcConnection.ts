@@ -171,6 +171,12 @@ export class RtcConnection {
     );
   }
 
+  public addStream(data: any) {
+    Object.keys(this.peers).forEach((x) => {
+      this.peers[x].addStream(data);
+    });
+  }
+
   public sendDataMessage(data: any) {
     Object.keys(this.peers).forEach((x) => {
       this.peers[x].sendDataMessage(data);
