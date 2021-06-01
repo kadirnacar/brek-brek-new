@@ -3,19 +3,14 @@ package com.brekbrek_app.utils;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
-import android.util.Log;
-
-import com.brekbrek_app.HelperModule;
-import com.oney.WebRTCModule.ThreadUtils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class Player {
     private static AudioTrack audioTrack;
     private static Thread playingThread;
-    private static final int SAMPLE_RATE = 48000;
+    private static final int SAMPLE_RATE = 16000;
     private static final int FRAME_SIZE = 960;
     private static OpusDecoder opusDecoder;
     private static final int NUM_CHANNELS = 1;

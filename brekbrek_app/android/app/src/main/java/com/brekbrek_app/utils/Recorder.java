@@ -3,6 +3,7 @@ package com.brekbrek_app.utils;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
+import android.util.Log;
 
 import com.brekbrek_app.HelperModule;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -15,7 +16,7 @@ import java.util.HashMap;
 public class Recorder {
     private static AudioRecord audioRecord;
     private static Thread recordingThread;
-    private static final int SAMPLE_RATE = 48000;
+    private static final int SAMPLE_RATE = 16000;
     private static int FRAME_SIZE = 960;
     private static OpusEncoder opusEncoder;
     private static final int NUM_CHANNELS = 1;
@@ -84,7 +85,7 @@ public class Recorder {
     }
 
     private static void recording() {
-        byte[] inBuf = new byte[FRAME_SIZE * NUM_CHANNELS * 2];
+        byte[] inBuf = new byte[FRAME_SIZE * 2];
         byte[] encBuf = new byte[FRAME_SIZE];
 
         while (isRecording) {
@@ -106,6 +107,7 @@ public class Recorder {
             if (isRecording) {
                 try {
                     int encoded = opusEncoder.encode(inBuf, FRAME_SIZE, encBuf);
+                    Log.i("BrekBrek", String.format("encoded:%d", encoded));
                     if (encoded > 0) {
                         rtcModule.dataChannelSendAllStream(ByteBuffer.wrap(encBuf, 0, encoded));
                     }
