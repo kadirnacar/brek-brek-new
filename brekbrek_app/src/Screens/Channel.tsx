@@ -64,7 +64,7 @@ export class ChannelScreenComp extends Component<Props, ChannelState> {
         // });
 
         this.setState({ contacts: [contact] });
-        HelperModule.startService(contact.Name || '', `${user?.refId}/${contact.refId}`);
+        await HelperModule.startService(contact.Name || '', `${user?.refId}/${contact.refId}`);
       }
     } else if (params.type == 'Channel') {
       const channel = ChannelService.get(params.id);
@@ -88,13 +88,13 @@ export class ChannelScreenComp extends Component<Props, ChannelState> {
         if (channel.Contacts) {
           this.setState({ contacts: channel.Contacts });
         }
-        HelperModule.startService(channel.Name, channel.id.toHexString());
+        await HelperModule.startService(channel.Name, channel.id.toHexString());
       }
     }
   }
 
-  componentWillUnmount() {
-    HelperModule.stopService();
+  async componentWillUnmount() {
+    await HelperModule.stopService();
     this.props.navigation.removeListener('state', this.navigationRefresh);
   }
 
@@ -159,11 +159,11 @@ export class ChannelScreenComp extends Component<Props, ChannelState> {
           }}
         />
         <TouchableOpacity
-          onPressIn={() => {
-            JavaJsModule.startRecord();
+          onPressIn={async () => {
+            await JavaJsModule.startRecord();
           }}
-          onPressOut={() => {
-            JavaJsModule.stopRecord();
+          onPressOut={async () => {
+            await JavaJsModule.stopRecord();
           }}
           style={{
             alignContent: 'center',

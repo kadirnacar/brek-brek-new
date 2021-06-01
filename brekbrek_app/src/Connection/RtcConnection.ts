@@ -16,6 +16,7 @@ export class RtcConnection {
   public onReceiveStream: (clientId: string, stream: MediaStream) => void;
 
   public onMessage: (message: any) => Promise<void>;
+  public onPeerMessage: (message: any) => Promise<void>;
   public onPeerConnectionCompleted: () => Promise<void>;
 
   public getClientId() {
@@ -128,7 +129,7 @@ export class RtcConnection {
         await this.onPeerConnectionCompleted();
       }
     };
-    
+
     peer.onCandidate = (ice: RTCIceCandidateType) => {
       this.socket.send(
         JSON.stringify({
@@ -141,7 +142,9 @@ export class RtcConnection {
     };
 
     peer.onMessage = (event: any) => {
-      console.log(this.user?.Name, 'message come', event.data);
+      if (this.onPeerMessage) {
+        this.onPeerMessage(event);
+      }
     };
 
     peer.onReceiveStream = (stream: MediaStream) => {

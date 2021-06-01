@@ -37,11 +37,11 @@ export class RtcClient {
   private preparePeer(id: string) {
     this.peer = new RTCPeerConnection(this.rtcOptions);
     this.dataChannel = this.peer.createDataChannel('data');
-    this.streamChannel = this.peer.createDataChannel('stream', { ordered: true });
+    this.streamChannel = this.peer.createDataChannel('stream');
 
     this.dataChannel.onmessage = (event) => {
       if (this.onMessage) {
-        this.onMessage(event);
+        this.onMessage(JSON.parse(event.data));
       }
     };
     const user = UserService.getSystemUser();

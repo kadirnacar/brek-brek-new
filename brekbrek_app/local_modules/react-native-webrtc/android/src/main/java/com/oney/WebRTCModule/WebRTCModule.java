@@ -18,6 +18,7 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -977,22 +978,22 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
         }
     }
 
-    public void dataChannelSendAllStream(byte[] data) {
+    public void dataChannelSendAllStream(ByteBuffer data) {
         for (int i = 0; i < mPeerConnectionObservers.size(); i++) {
             int id = mPeerConnectionObservers.keyAt(i);
-            dataChannelSendStream(id, data);
+            dataChannelSendStreamAsync(id, data);
         }
     }
 
     @ReactMethod
     public void dataChannelSendStream(int peerConnectionId,
-                                      byte[] data) {
+                                      ByteBuffer data) {
         ThreadUtils.runOnExecutor(() ->
                 dataChannelSendStreamAsync(peerConnectionId, data));
     }
 
     private void dataChannelSendStreamAsync(int peerConnectionId,
-                                            byte[] data) {
+                                            ByteBuffer data) {
         // Forward to PeerConnectionObserver which deals with DataChannels
         // because DataChannel is owned by PeerConnection.
         PeerConnectionObserver pco

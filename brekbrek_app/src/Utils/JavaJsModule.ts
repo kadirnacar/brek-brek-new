@@ -31,13 +31,22 @@ class JavaJsModule {
     return JavaJsModule.instance;
   }
 
-  public startRecord() {
-    HelperModule.startRecord();
-    this.rtcConnection?.sendDataMessage('bastı');
+  public async startPlay() {
+    await HelperModule.startPlay();
   }
 
-  public stopRecord() {
-    HelperModule.stopRecord();
+  public async stopPlay() {
+    await HelperModule.stopPlay();
+  }
+
+  public async startRecord() {
+    this.rtcConnection?.sendDataMessage({ type: 'speak', status: true });
+    await HelperModule.startRecord();
+  }
+
+  public async stopRecord() {
+    this.rtcConnection?.sendDataMessage({ type: 'speak', status: false });
+    await HelperModule.stopRecord();
   }
 
   async callScript(message: any) {
@@ -58,10 +67,22 @@ class JavaJsModule {
     this.rtcConnection = new RtcConnection(`${config.socketUrl}/${channelId}`);
 
     this.rtcConnection.onPeerConnectionCompleted = async () => {
-      HelperModule.registerPlayerListener();
+      await HelperModule.registerPlayerListener();
     };
 
     this.rtcConnection.connectServer();
+
+    this.rtcConnection.onPeerMessage = async (msg) => {
+      if (msg.data && msg.data.type && msg.data.type == 'speak') {
+        if (msg.data.status) {
+          await HelperModule.startPlay();
+        } else {
+          await HelperModule.stopPlay();
+        }
+      } else {
+        console.log('onPeerMessage else', msg);
+      }
+    };
 
     this.rtcConnection.onMessage = async (msg) => {
       if (msg.type && (msg.type == 'connection' || 'peers')) {

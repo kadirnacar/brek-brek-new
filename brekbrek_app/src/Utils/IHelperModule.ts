@@ -6,6 +6,8 @@ export interface IHelperModule {
   startRecord: () => void;
   registerPlayerListener: () => void;
   stopRecord: () => void;
+  startPlay: () => void;
+  stopPlay: () => void;
   createPeer: (peerId: string) => Promise<void>;
   createAnswer: (peerId: string, type: string, description: string) => Promise<void>;
   setAnswer: (peerId: string, type: string, description: string) => Promise<void>;

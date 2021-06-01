@@ -217,12 +217,10 @@ class PeerConnectionObserver implements PeerConnection.Observer {
     }
 
     DataChannel getStreamDataChannel() {
-        DataChannel dc;
         if (streamDataChannel == null) {
             for (int i = 0; i < dataChannels.size(); i++) {
-                dc = dataChannels.valueAt(i);
+                DataChannel dc = dataChannels.valueAt(i);
                 String label = dc.label();
-                int mId = dc.id();
                 if (label.equals("stream")) {
                     streamDataChannel = dc;
                 }
@@ -240,11 +238,10 @@ class PeerConnectionObserver implements PeerConnection.Observer {
         }
     }
 
-    void dataChannelSendStream(byte[] data) {
+    void dataChannelSendStream(ByteBuffer data) {
         DataChannel dataChannel = getStreamDataChannel();
         if (dataChannel != null) {
-            ByteBuffer byteBuffer = ByteBuffer.wrap(data);
-            DataChannel.Buffer buffer = new DataChannel.Buffer(byteBuffer, true);
+            DataChannel.Buffer buffer = new DataChannel.Buffer(data, true);
             dataChannel.send(buffer);
         } else {
             Log.d(TAG, "dataChannelSendStream() dataChannel is null");

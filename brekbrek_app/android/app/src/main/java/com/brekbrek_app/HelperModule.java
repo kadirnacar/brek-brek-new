@@ -1,21 +1,17 @@
 package com.brekbrek_app;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.provider.Settings;
-import android.support.v4.media.session.IMediaSession;
-import android.util.Log;
 
 import com.brekbrek_app.utils.Player;
 import com.oney.WebRTCModule.DataChannelEventListener;
 import com.oney.WebRTCModule.WebRTCModule;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 
 import com.brekbrek_app.utils.Recorder;
 import com.facebook.react.bridge.Arguments;
@@ -48,23 +44,31 @@ public class HelperModule extends ReactContextBaseJavaModule {
     @SuppressLint("HardwareIds")
     @ReactMethod(isBlockingSynchronousMethod = true)
     public String getDeviceId() {
-        return Settings.Secure.getString(getReactApplicationContext().getContentResolver(),
+        return Settings.Secure.getString(HelperModule.context.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
     }
 
-    @ReactMethod(isBlockingSynchronousMethod = true)
+    @ReactMethod
+    public void stopPlay() {
+        Player.stop();
+    }
+
+    @ReactMethod
+    public void startPlay() {
+        Player.start();
+    }
+
+    @ReactMethod
     public void stopRecord() {
         Recorder.stop();
     }
 
-
-    @ReactMethod(isBlockingSynchronousMethod = true)
+    @ReactMethod
     public void startRecord() {
-        Log.i("BrekBrek", "deneme");
         Recorder.start();
     }
 
-    @ReactMethod(isBlockingSynchronousMethod = true)
+    @ReactMethod
     public void registerPlayerListener() {
         context.getNativeModule(WebRTCModule.class).addAllDataChannelMessageListener("player", new DataChannelEventListener() {
             @Override
@@ -76,14 +80,12 @@ public class HelperModule extends ReactContextBaseJavaModule {
                     bytes = new byte[buffer.data.remaining()];
                     buffer.data.get(bytes);
                 }
-                Log.i("BrekBrek", String.valueOf(bytes.length));
-
                 Player.stream(bytes);
             }
         });
     }
 
-    @ReactMethod(isBlockingSynchronousMethod = true)
+    @ReactMethod
     public String getServiceStatus() {
         String status = "stopped";
         if (mBackgroundCallerService != null) {
@@ -98,9 +100,8 @@ public class HelperModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void startService(String channelName, String channelId) {
-        Recorder.init(getReactApplicationContext());
+        Recorder.init(HelperModule.context);
         Player.init();
-        Player.start();
         mBackgroundCallerService = new BackgroundCallerService();
         mServiceIntent = new Intent(HelperModule.context, mBackgroundCallerService.getClass());
         mServiceIntent.putExtra("ChannelName", channelName);
@@ -124,7 +125,6 @@ public class HelperModule extends ReactContextBaseJavaModule {
         return false;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     @ReactMethod
     public void stopService() {
         if (mServiceIntent != null) {

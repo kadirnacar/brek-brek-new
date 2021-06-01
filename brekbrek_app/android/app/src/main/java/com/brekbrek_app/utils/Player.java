@@ -3,8 +3,13 @@ package com.brekbrek_app.utils;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
+import android.util.Log;
+
+import com.brekbrek_app.HelperModule;
+import com.oney.WebRTCModule.ThreadUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class Player {
@@ -16,9 +21,13 @@ public class Player {
     private static final int NUM_CHANNELS = 1;
     private static int minBufSize;
     private static boolean isPlaying;
-    // private static SpeexDecoder speexDecoder;
+    private static boolean isInit = false;
 
     public static void init() {
+        if (isInit == true) {
+            return;
+        }
+        isInit = true;
         isPlaying = false;
         minBufSize = AudioTrack.getMinBufferSize(SAMPLE_RATE, AudioFormat.CHANNEL_OUT_MONO,
                 AudioFormat.ENCODING_PCM_16BIT);
@@ -33,28 +42,26 @@ public class Player {
 
     public static void start() {
         if (isPlaying == false) {
+            isPlaying = true;
             if (audioTrack != null && audioTrack.getPlayState() == AudioTrack.STATE_INITIALIZED) {
                 audioTrack.play();
             }
             playingThread = new Thread(Player::playing, "PlayingThread");
             playingThread.start();
-            isPlaying = true;
         }
     }
 
     public static void stop() {
+        isPlaying = false;
         if (playingThread != null) {
             playingThread.interrupt();
-        }
-        isPlaying = false;
-        if (destination != null) {
-            destination.clear();
         }
         if (audioTrack != null) {
             audioTrack.stop();
         }
-
-        playingThread = null;
+        if (destination != null) {
+            destination.clear();
+        }
     }
 
     static List<byte[]> destination;
@@ -67,32 +74,29 @@ public class Player {
     }
 
     private static void playing() {
-        int i = 0;
         while (isPlaying && audioTrack != null && audioTrack.getPlayState() == AudioTrack.PLAYSTATE_PLAYING) {
-            if (destination != null) {
-                if (destination.size() > i) {
-                    byte[] data = destination.get(i);
-                    if (data != null && data.length > 0) {
-                        try {
-                            short[] outBuf = new short[FRAME_SIZE * NUM_CHANNELS];
-                            int decoded = opusDecoder.decode(data, outBuf, FRAME_SIZE);
-                            if (decoded > 0) {
-                                audioTrack.write(outBuf, 0, decoded);
-                            }
-                        } catch (Exception ex) {
-
+            if (destination != null && destination.size() > 0) {
+                byte[] data = destination.get(0);
+                if (data != null && data.length > 0) {
+                    try {
+                        short[] outBuf = new short[FRAME_SIZE * 2];
+                        int decoded = opusDecoder.decode(data, outBuf, FRAME_SIZE);
+                        if (decoded > 0) {
+                            audioTrack.write(outBuf, 0, decoded);
                         }
+                    } catch (Exception ex) {
+
                     }
-                    i++;
-                } else {
-                    // try {
-                    // Thread.sleep(100);
-                    // } catch (InterruptedException e) {
-                    // e.printStackTrace();
-                    // }
+                }
+                try {
+                    if (destination != null && destination.size() > 0) {
+                        destination.remove(0);
+                    }
+                } catch (Exception ex) {
+
                 }
             }
         }
     }
-
 }
+
