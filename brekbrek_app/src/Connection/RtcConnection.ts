@@ -16,8 +16,8 @@ export class RtcConnection {
   public onReceiveStream: (clientId: string, stream: MediaStream) => void;
 
   public onMessage: (message: any) => Promise<void>;
-  public onPeerMessage: (message: any) => Promise<void>;
-  public onPeerConnectionCompleted: () => Promise<void>;
+  public onPeerMessage: (peerId: string, message: any) => Promise<void>;
+  public onPeerConnectionCompleted: (peerId: string) => Promise<void>;
 
   public getClientId() {
     return this.socketId;
@@ -32,12 +32,12 @@ export class RtcConnection {
         this.autoReconnect = true;
       }
       this.socket.onclose = (event) => {
-        console.log(this.user?.Name, 'onsocketclose', event.message);
+        // console.log(this.user?.Name, 'onsocketclose', event.message);
         // this.disconnectServer(true);
       };
 
       this.socket.onerror = (event) => {
-        console.log(this.user?.Name, 'onsocketerror', event.message);
+        // console.log(this.user?.Name, 'onsocketerror', event.message);
         this.onError();
       };
 
@@ -126,7 +126,7 @@ export class RtcConnection {
 
     peer.onDataChannelOpen = async () => {
       if (this.onPeerConnectionCompleted) {
-        await this.onPeerConnectionCompleted();
+        await this.onPeerConnectionCompleted(peerId);
       }
     };
 
@@ -141,9 +141,9 @@ export class RtcConnection {
       );
     };
 
-    peer.onMessage = (event: any) => {
+    peer.onMessage = async (event: any) => {
       if (this.onPeerMessage) {
-        this.onPeerMessage(event);
+        await this.onPeerMessage(peerId, event);
       }
     };
 
@@ -174,9 +174,15 @@ export class RtcConnection {
     );
   }
 
-  public sendDataMessage(data: any) {
+  public sendMessageToPeer(peerId: string, data: any) {
+    if (this.peers && this.peers[peerId]) {
+      this.peers[peerId].sendDataMessage(data);
+    }
+  }
+
+  public sendMessageToAllPeers(data: any) {
     Object.keys(this.peers).forEach((x) => {
-      this.peers[x].sendDataMessage(data);
+      this.sendMessageToPeer(x, data);
     });
   }
 }

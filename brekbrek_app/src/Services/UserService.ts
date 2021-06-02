@@ -23,6 +23,14 @@ class UserService {
     return this.userRepo.getAll()?.find((x) => x.isSystem);
   }
 
+  public getContactByRefId(refId: string) {
+    return this.userRepo.getAll()?.find((x) => x.refId === refId);
+  }
+
+  public getContactById(id: string | ObjectId) {
+    return this.userRepo.getById(new ObjectId(id));
+  }
+
   public getContacts() {
     return this.userRepo.getAll()?.filter((x) => !x.isSystem);
   }
@@ -32,6 +40,7 @@ class UserService {
   }
 
   public async save(data: Partial<Users>) {
+    data.LastUpdate = new Date();
     return await this.userRepo.save({ id: new ObjectId(), isSystem: false, ...data });
   }
 

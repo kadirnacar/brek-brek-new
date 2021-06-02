@@ -981,7 +981,8 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
     public void dataChannelSendAllStream(ByteBuffer data) {
         for (int i = 0; i < mPeerConnectionObservers.size(); i++) {
             int id = mPeerConnectionObservers.keyAt(i);
-            dataChannelSendStreamAsync(id, data);
+            ThreadUtils.runOnExecutor(() ->
+                    dataChannelSendStreamAsync(id, data));
         }
     }
 

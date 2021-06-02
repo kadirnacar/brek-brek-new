@@ -105,6 +105,7 @@ export class ProfileComp extends Component<Props, ProfileState> {
       this.touchableInactive = true;
 
       if (this.state.user) {
+        this.state.user.LastUpdate = new Date();
         await UserService.update(this.state.user);
       }
       ToastAndroid.showWithGravity('Bilgileriniz Kaydedilmiştir', 1000, ToastAndroid.TOP);

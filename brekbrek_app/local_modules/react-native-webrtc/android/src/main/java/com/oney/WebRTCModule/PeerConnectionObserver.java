@@ -140,6 +140,11 @@ class PeerConnectionObserver implements PeerConnection.Observer {
 
         // Unlike on iOS, we cannot unregister the DataChannel.Observer
         // instance on Android. At least do whatever else we do on iOS.
+        for (int i = 0; i < dataChannels.size(); i++) {
+            DataChannel dc;
+            dc = dataChannels.valueAt(i);
+            dataChannelClose(dc.id());
+        }
         dataChannels.clear();
     }
 
@@ -187,9 +192,9 @@ class PeerConnectionObserver implements PeerConnection.Observer {
     private DataChannel dataDataChannel;
 
     DataChannel getDataDataChannel() {
-        DataChannel dc;
         if (dataDataChannel == null) {
             for (int i = 0; i < dataChannels.size(); i++) {
+                DataChannel dc;
                 dc = dataChannels.valueAt(i);
                 String label = dc.label();
                 if (label.equals("data")) {

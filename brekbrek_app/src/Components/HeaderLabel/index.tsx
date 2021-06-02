@@ -5,7 +5,6 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import noAvatar from '../../assets/no-avatar.png';
 import { Users } from '../../Models';
-import { RealmService } from '../../realm/RealmService';
 import { UserService } from '../../Services';
 import { Colors } from '../../Utils/Colors';
 

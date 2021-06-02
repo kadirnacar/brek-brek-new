@@ -47,44 +47,12 @@ export class ChannelScreenComp extends Component<Props, ChannelState> {
       const contact = UserService.getUser(params.id);
 
       if (contact) {
-        // this.props.navigation.setOptions({
-        //   headerLeft: (propss: any) => (
-        //     <HeaderLabel
-        //       navigation={this.props.navigation}
-        //       name={contact.Name}
-        //       image={
-        //         contact.Image
-        //           ? {
-        //               uri: `data:image/png;base64,${encode(contact.Image)}`,
-        //             }
-        //           : noAvatar
-        //       }
-        //     />
-        //   ),
-        // });
-
         this.setState({ contacts: [contact] });
         await HelperModule.startService(contact.Name || '', `${user?.refId}/${contact.refId}`);
       }
     } else if (params.type == 'Channel') {
       const channel = ChannelService.get(params.id);
       if (channel) {
-        // this.props.navigation.setOptions({
-        //   headerLeft: (propss: any) => (
-        //     <HeaderLabel
-        //       navigation={this.props.navigation}
-        //       name={channel.Name}
-        //       image={
-        //         channel.Image
-        //           ? {
-        //               uri: `data:image/png;base64,${encode(channel.Image)}`,
-        //             }
-        //           : channelGrayIcon
-        //       }
-        //     />
-        //   ),
-        // });
-
         if (channel.Contacts) {
           this.setState({ contacts: channel.Contacts });
         }
@@ -203,7 +171,9 @@ export class ChannelScreenComp extends Component<Props, ChannelState> {
             if (name == 'ping' && JavaJsModule.rtcConnection) {
               JavaJsModule.rtcConnection.sendMessage({ type: 'ping' });
             } else if (name === 'invite') {
-              await this.shareChannel();
+              JavaJsModule.checkUser(
+                this.state.contacts[0].refId ? this.state.contacts[0].refId : ''
+              );
             }
           }}
         />

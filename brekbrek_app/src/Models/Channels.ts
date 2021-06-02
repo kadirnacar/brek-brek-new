@@ -17,6 +17,9 @@ export class Users {
 
   @Column({ type: 'data', optional: true })
   Image?: ArrayBuffer;
+
+  @Column({ type: 'date', optional: true, default: new Date() })
+  LastUpdate?: Date = new Date();
 }
 
 @Entity('Invite')

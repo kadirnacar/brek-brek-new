@@ -65,3 +65,4 @@ brekbrek_app/package-lock.json
 brekbrek_app/android/java_pid66126.hprof
 *.hprof
 server/data/database.realm
+server/data/database.realm

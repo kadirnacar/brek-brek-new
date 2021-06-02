@@ -36,9 +36,18 @@ export class RtcClient {
 
   private preparePeer(id: string) {
     this.peer = new RTCPeerConnection(this.rtcOptions);
-    this.dataChannel = this.peer.createDataChannel('data');
-    this.streamChannel = this.peer.createDataChannel('stream');
+    this.dataChannel = this.peer.createDataChannel('data', { negotiated: true, id: 1 });
+    this.streamChannel = this.peer.createDataChannel('stream', { negotiated: true, id: 2 });
 
+    this.dataChannel.onopen = (ev) => {
+      console.log('datachannel open', ev);
+    };
+    this.dataChannel.onerror = (ev) => {
+      console.log('datachannel onerror', ev);
+    };
+    this.dataChannel.onclose = (ev) => {
+      console.log('datachannel onclose', ev);
+    };
     this.dataChannel.onmessage = (event) => {
       if (this.onMessage) {
         this.onMessage(JSON.parse(event.data));
@@ -50,6 +59,11 @@ export class RtcClient {
     this.peer.oniceconnectionstatechange = (event) => {
       if (event.target.iceConnectionState === 'connected' && this.onDataChannelOpen) {
         this.onDataChannelOpen(event);
+      } else if (
+        event.target.iceConnectionState === 'disconnected' ||
+        event.target.iceConnectionState === 'closed'
+      ) {
+        this.close();
       }
       console.log(user?.Name, 'oniceconnectionstatechange', event.target.iceConnectionState);
     };
@@ -117,8 +131,6 @@ export class RtcClient {
   }
 
   public close() {
-    if (this.dataChannel) this.dataChannel.close();
-    if (this.streamChannel) this.streamChannel.close();
     if (this.peer) this.peer.close();
     this.peer = undefined;
     this.dataChannel = undefined;
