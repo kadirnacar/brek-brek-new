@@ -10,6 +10,12 @@ import { decode, encode } from 'base64-arraybuffer';
 const HelperModule: IHelperModule = NativeModules.HelperModule;
 const WebRTCModule = NativeModules.WebRTCModule;
 
+export enum PeerMessageType {
+  Ping,
+  Pong,
+  Speak,
+  UpdateContact,
+}
 class JavaJsModule {
   constructor() {
     this.user = UserService.getSystemUser();
@@ -41,12 +47,12 @@ class JavaJsModule {
   }
 
   public async startRecord() {
-    this.rtcConnection?.sendMessageToAllPeers({ type: 'speak', status: true });
+    this.rtcConnection?.sendMessageToAllPeers({ type: PeerMessageType.Speak, status: true });
     await HelperModule.startRecord();
   }
 
   public async stopRecord() {
-    this.rtcConnection?.sendMessageToAllPeers({ type: 'speak', status: false });
+    this.rtcConnection?.sendMessageToAllPeers({ type: PeerMessageType.Speak, status: false });
     await HelperModule.stopRecord();
   }
 
@@ -64,10 +70,12 @@ class JavaJsModule {
   }
 
   public checkUser(peerId: string) {
+    const contact = UserService.getContactByRefId(peerId);
     this.rtcConnection?.sendMessageToPeer(peerId, {
-      type: 'check-user',
+      type: PeerMessageType.Ping,
       userId: this.user?.id,
-      date: this.user?.LastUpdate,
+      mydate: this.user?.LastUpdate,
+      udate: contact?.LastUpdate,
     });
   }
 
@@ -84,46 +92,78 @@ class JavaJsModule {
 
     this.rtcConnection.onPeerMessage = async (peerId, msg) => {
       if (msg.data && msg.data.type) {
-        const { userId, date, name, image } = msg.data;
+        const { userId, mydate, udate, getInfo, userName, userImage, userDate } = msg.data;
         switch (msg.data.type) {
-          case 'speak':
+          case PeerMessageType.Speak:
             if (msg.data.status) {
               await HelperModule.startPlay();
             } else {
               await HelperModule.stopPlay();
             }
             break;
-          case 'check-user':
-            if (userId) {
-              const contact = UserService.getContactById(userId);
-              if (contact?.LastUpdate != new Date(date)) {
-                this.rtcConnection?.sendMessageToPeer(peerId, {
-                  type: 'get-update',
-                });
-              }
-            }
-            break;
-          case 'get-update':
-            this.rtcConnection?.sendMessageToPeer(peerId, {
-              type: 'set-update',
-              userId: this.user?.id,
-              name: this.user?.Name,
-              date: this.user?.LastUpdate,
-              image: this.user?.Image ? encode(this.user?.Image) : null,
-            });
-            break;
-          case 'set-update':
-            console.log(userId);
+          case PeerMessageType.Pong:
+            this.rtcConnection?.closeSocket();
+            this.navigation.setParams({ contactId: peerId, status: 'online' });
             if (userId) {
               const contact = UserService.getContactById(userId);
               if (contact) {
-                await UserService.update({
-                  id: contact.id,
-                  Image: image ? decode(image) : undefined,
-                  LastUpdate: new Date(date),
-                  Name: name,
-                });
-                this.navigation.setParams({ time: new Date().toTimeString() });
+                try {
+                  await UserService.update({
+                    id: contact.id,
+                    Image: userImage ? decode(userImage) : undefined,
+                    LastUpdate: new Date(userDate),
+                    Name: userName,
+                  });
+                  this.navigation.setParams({ time: new Date().toTimeString() });
+                } catch (err) {
+                  console.log(err);
+                }
+              }
+            }
+            if (getInfo === true) {
+              this.rtcConnection?.sendMessageToPeer(peerId, {
+                type: PeerMessageType.UpdateContact,
+                userId: this.user?.id,
+                userName: this.user?.Name,
+                userDate: this.user?.LastUpdate,
+                userImage: this.user?.Image ? encode(this.user?.Image) : null,
+              });
+            }
+            break;
+          case PeerMessageType.Ping:
+            this.rtcConnection?.closeSocket();
+            this.navigation.setParams({ contactId: peerId, status: 'online' });
+            const data: any = { type: PeerMessageType.Pong };
+
+            if (userId) {
+              const contact = UserService.getContactById(userId);
+              if (contact?.LastUpdate != new Date(mydate)) {
+                data.getInfo = true;
+              }
+              if (this.user?.LastUpdate != new Date(udate)) {
+                data.userId = this.user?.id;
+                data.userName = this.user?.Name;
+                data.userDate = this.user?.LastUpdate;
+                data.userImage = this.user?.Image ? encode(this.user?.Image) : null;
+              }
+            }
+            this.rtcConnection?.sendMessageToPeer(peerId, data);
+            break;
+          case PeerMessageType.UpdateContact:
+            if (userId) {
+              const contact = UserService.getContactById(userId);
+              if (contact) {
+                try {
+                  await UserService.update({
+                    id: contact.id,
+                    Image: userImage ? decode(userImage) : undefined,
+                    LastUpdate: new Date(userDate),
+                    Name: userName,
+                  });
+                  this.navigation.setParams({ time: new Date().toTimeString() });
+                } catch (err) {
+                  console.log(err);
+                }
               }
             }
             break;
@@ -135,13 +175,13 @@ class JavaJsModule {
     };
 
     this.rtcConnection.onMessage = async (msg) => {
-      if (msg.type && (msg.type == 'connection' || 'peers')) {
-        try {
-          this.navigation.setParams({ contactId: msg.contactId, status: msg.status });
-        } catch {}
-      } else {
-        console.log('type null', msg);
-      }
+      // if (msg.type && (msg.type == 'connection' || 'peers')) {
+      //   try {
+      //     this.navigation.setParams({ contactId: msg.contactId, status: msg.status });
+      //   } catch {}
+      // } else {
+      //   console.log('type null', msg);
+      // }
     };
   }
 

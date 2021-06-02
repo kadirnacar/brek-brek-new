@@ -54,9 +54,9 @@ export class SocketService {
       })
     );
 
-    SocketService.sendTo({ type: 'connection', status: 'online', contactId }, channelId, null, [
-      contactId,
-    ]);
+    // SocketService.sendTo({ type: 'connection', status: 'online', contactId }, channelId, null, [
+    //   contactId,
+    // ]);
 
     socket.addListener('message', SocketService.onMessage.bind(socket, channelId, contactId));
     socket.addListener('close', SocketService.onClose.bind(socket, channelId, contactId));
@@ -113,10 +113,10 @@ export class SocketService {
       if (Object.keys(SocketService.channelList[channelId]).length == 0) {
         delete SocketService.channelList[channelId];
       }
-      SocketService.sendTo(
-        { type: 'connection', status: 'offline', contactId: contactId },
-        channelId
-      );
+      // SocketService.sendTo(
+      //   { type: 'connection', status: 'offline', contactId: contactId },
+      //   channelId
+      // );
     }
     console.log(
       'close',

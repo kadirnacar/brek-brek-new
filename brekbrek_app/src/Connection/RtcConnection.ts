@@ -105,7 +105,13 @@ export class RtcConnection {
 
   public onError() {
     if (this.autoReconnect) {
-      this.connectServer(true);
+      // this.connectServer(true);
+    }
+  }
+
+  public closeSocket(){
+    if (this.socket) {
+      this.socket.close();
     }
   }
 
