@@ -12,7 +12,8 @@ public class Player {
     private static Thread playingThread;
     private static final int SAMPLE_RATE = 16000;
     private static final int FRAME_SIZE = 960;
-    private static OpusDecoder opusDecoder;
+//    private static OpusDecoder opusDecoder;
+    private static SpeexDecoder speexDecoder;
     private static final int NUM_CHANNELS = 1;
     private static int minBufSize;
     private static boolean isPlaying;
@@ -31,8 +32,9 @@ public class Player {
                 AudioFormat.ENCODING_PCM_16BIT, minBufSize, AudioTrack.MODE_STREAM);
 
         destination = new ArrayList<>();
-        opusDecoder = new OpusDecoder();
-        opusDecoder.init(SAMPLE_RATE, NUM_CHANNELS);
+//        opusDecoder = new OpusDecoder();
+        speexDecoder = new SpeexDecoder(FrequencyBand.ULTRA_WIDE_BAND);
+//        opusDecoder.init(SAMPLE_RATE, NUM_CHANNELS);
     }
 
     public static void start() {
@@ -75,9 +77,10 @@ public class Player {
                 if (data != null && data.length > 0) {
                     try {
                         short[] outBuf = new short[FRAME_SIZE * 2];
-                        int decoded = opusDecoder.decode(data, outBuf, FRAME_SIZE);
-                        if (decoded > 0) {
-                            audioTrack.write(outBuf, 0, decoded);
+//                        int decoded = opusDecoder.decode(data, outBuf, FRAME_SIZE);
+                        short[] decoded = speexDecoder.decode(data);
+                        if (decoded.length > 0) {
+                            audioTrack.write(decoded, 0, decoded.length);
                         }
                     } catch (Exception ex) {
 

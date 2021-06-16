@@ -18,7 +18,8 @@ public class Recorder {
     private static Thread recordingThread;
     private static final int SAMPLE_RATE = 16000;
     private static int FRAME_SIZE = 960;
-    private static OpusEncoder opusEncoder;
+//    private static OpusEncoder opusEncoder;
+    private static SpeexEncoder speexEncoder;
     private static final int NUM_CHANNELS = 1;
     private static boolean isRecording;
     private static int minBufSize;
@@ -59,8 +60,9 @@ public class Recorder {
             rtcModule = context.getNativeModule(WebRTCModule.class);
         }
         recordingThread = new Thread(Recorder::recording, "RecordingThread");
-        opusEncoder = new OpusEncoder();
-        opusEncoder.init(SAMPLE_RATE, NUM_CHANNELS, OpusEncoder.OPUS_APPLICATION_AUDIO);
+//        opusEncoder = new OpusEncoder();
+        speexEncoder = new SpeexEncoder(FrequencyBand.ULTRA_WIDE_BAND, 9);
+//        opusEncoder.init(SAMPLE_RATE, NUM_CHANNELS, OpusEncoder.OPUS_APPLICATION_AUDIO);
     }
 
     public static void start() {
@@ -85,7 +87,7 @@ public class Recorder {
     }
 
     private static void recording() {
-        byte[] inBuf = new byte[FRAME_SIZE * 2];
+        short[] inBuf = new short[FRAME_SIZE * 2];
         byte[] encBuf = new byte[FRAME_SIZE];
 
         while (isRecording) {
@@ -106,11 +108,13 @@ public class Recorder {
 
             if (isRecording) {
                 try {
-                    int encoded = opusEncoder.encode(inBuf, FRAME_SIZE, encBuf);
-                    Log.i("BrekBrek", String.format("encoded:%d", encoded));
-                    if (encoded > 0) {
-                        rtcModule.dataChannelSendAllStream(ByteBuffer.wrap(encBuf, 0, encoded));
-                    }
+//                    int encoded = opusEncoder.encode(inBuf, FRAME_SIZE, encBuf);
+                    byte[] enc = speexEncoder.encode(inBuf);
+                    Log.i("BrekBrek",String.valueOf(enc.length));
+//                    Log.i("BrekBrek", String.format("encoded:%d", encoded));
+//                    if (encoded > 0) {
+//                        rtcModule.dataChannelSendAllStream(ByteBuffer.wrap(encBuf, 0, encoded));
+//                    }
                 } catch (Exception ex) {
                 } catch (Throwable throwable) {
                     throwable.printStackTrace();
