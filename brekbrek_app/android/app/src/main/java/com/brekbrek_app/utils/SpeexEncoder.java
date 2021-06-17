@@ -26,6 +26,11 @@ public class SpeexEncoder
         deallocate(slot);
     }
 
+    public synchronized int getSampleRate()
+    {
+        return getSampleRate(slot);
+    }
+
     public synchronized int getFrameSize()
     {
         return getFrameSize(slot);
@@ -43,6 +48,7 @@ public class SpeexEncoder
 
     private native static byte[] encode(int slot, short[] samples);
     private native static int getFrameSize(int slot);
+    private native static int getSampleRate(int slot);
 
     /**
      * allocates a slot in the JNI implementation for our native bits.  Store it in the {@link #slot} field.

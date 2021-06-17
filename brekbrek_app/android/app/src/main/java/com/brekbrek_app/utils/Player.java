@@ -10,8 +10,8 @@ import java.util.List;
 public class Player {
     private static AudioTrack audioTrack;
     private static Thread playingThread;
-    private static final int SAMPLE_RATE = 16000;
-    private static final int FRAME_SIZE = 960;
+    private static final int SAMPLE_RATE = 8000;
+    private static final int FRAME_SIZE = 640;
 //    private static OpusDecoder opusDecoder;
     private static SpeexDecoder speexDecoder;
     private static final int NUM_CHANNELS = 1;
@@ -76,7 +76,7 @@ public class Player {
                 byte[] data = destination.get(0);
                 if (data != null && data.length > 0) {
                     try {
-                        short[] outBuf = new short[FRAME_SIZE * 2];
+                        short[] outBuf = new short[FRAME_SIZE];
 //                        int decoded = opusDecoder.decode(data, outBuf, FRAME_SIZE);
                         short[] decoded = speexDecoder.decode(data);
                         if (decoded.length > 0) {

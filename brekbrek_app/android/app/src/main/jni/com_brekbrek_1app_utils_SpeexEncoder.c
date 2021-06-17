@@ -114,6 +114,20 @@ JNIEXPORT jint JNICALL Java_com_brekbrek_1app_utils_SpeexEncoder_deallocate
 //
 
 
+JNIEXPORT jint JNICALL Java_com_brekbrek_1app_utils_SpeexEncoder_getSampleRate
+        (JNIEnv *env, jclass cls, jint slot)
+{
+    if (throwIfBadSlot(env, slot))
+        return -1;
+
+    int sample_rate;
+    struct Slot * gob = slots.slots[slot];
+
+    speex_encoder_ctl(gob->state, SPEEX_GET_SAMPLING_RATE, &sample_rate);
+
+    return sample_rate;
+}
+
 JNIEXPORT jint JNICALL Java_com_brekbrek_1app_utils_SpeexEncoder_getFrameSize
   (JNIEnv *env, jclass cls, jint slot)
 {

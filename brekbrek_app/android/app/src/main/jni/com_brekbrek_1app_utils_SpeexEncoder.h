@@ -17,6 +17,14 @@ JNIEXPORT jbyteArray JNICALL Java_com_brekbrek_1app_utils_SpeexEncoder_encode
 
 /*
  * Class:     com_brekbrek_1app_utils_SpeexEncoder
+ * Method:    getSampleRate
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_com_brekbrek_1app_utils_SpeexEncoder_getSampleRate
+        (JNIEnv *, jclass, jint);
+
+/*
+ * Class:     com_brekbrek_1app_utils_SpeexEncoder
  * Method:    getFrameSize
  * Signature: (I)I
  */
