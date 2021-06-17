@@ -184,8 +184,8 @@ android {
 
     externalNativeBuild {
         ndkBuild {
-            //path "src/main/opusjni/Android.mk"
-            path "src/main/jni/Android.mk"
+            path "src/main/opusjni/Android.mk"
+            //speex --- path "src/main/jni/Android.mk"
         }
     }
 }
