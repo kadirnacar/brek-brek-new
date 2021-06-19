@@ -36,8 +36,18 @@ export class RtcClient {
 
   private preparePeer(id: string) {
     this.peer = new RTCPeerConnection(this.rtcOptions);
-    this.dataChannel = this.peer.createDataChannel('data', { negotiated: true, id: 1 });
-    this.streamChannel = this.peer.createDataChannel('stream', { negotiated: true, id: 2 });
+    this.dataChannel = this.peer.createDataChannel('data', {
+      negotiated: true,
+      id: 1,
+      ordered: false,
+      maxRetransmits: 0,
+    });
+    this.streamChannel = this.peer.createDataChannel('stream', {
+      negotiated: true,
+      id: 2,
+      ordered: false,
+      maxRetransmits: 0,
+    });
 
     this.dataChannel.onopen = (ev) => {
       console.log('datachannel open', ev);

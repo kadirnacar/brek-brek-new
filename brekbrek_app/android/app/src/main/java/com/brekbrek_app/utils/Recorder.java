@@ -3,11 +3,13 @@ package com.brekbrek_app.utils;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
+import android.media.audiofx.AcousticEchoCanceler;
+import android.media.audiofx.AutomaticGainControl;
+import android.media.audiofx.NoiseSuppressor;
 import android.util.Log;
 
 import com.brekbrek_app.HelperModule;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.oney.WebRTCModule.ThreadUtils;
 import com.oney.WebRTCModule.WebRTCModule;
 
 import java.nio.ByteBuffer;
@@ -18,8 +20,8 @@ public class Recorder {
     private static Thread recordingThread;
     private static int SAMPLE_RATE = 16000;
     private static int FRAME_SIZE = 1920;
-        private static OpusEncoder opusEncoder;
-//    private static SpeexEncoder speexEncoder;
+    private static OpusEncoder opusEncoder;
+    //    private static SpeexEncoder speexEncoder;
     private static final int NUM_CHANNELS = 1;
     private static boolean isRecording;
     private static int minBufSize;
@@ -43,28 +45,37 @@ public class Recorder {
         audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO,
                 AudioFormat.ENCODING_PCM_16BIT, minBufSize);
 
-//        NoiseSuppressor ns;
-//        AcousticEchoCanceler aec;
-//
-//        if (NoiseSuppressor.isAvailable()) {
-//            ns = NoiseSuppressor.create(audioRecord.getAudioSessionId());
-//            if (ns != null) {
-//                ns.setEnabled(true);
-//            }
-//        }
-//
-//        if (AcousticEchoCanceler.isAvailable()) {
-//            aec = AcousticEchoCanceler.create(audioRecord.getAudioSessionId());
-//            if (aec != null) {
-//                aec.setEnabled(true);
-//            }
-//        }
+        NoiseSuppressor ns;
+        AcousticEchoCanceler aec;
+        AutomaticGainControl agc;
+
+        if (NoiseSuppressor.isAvailable()) {
+            ns = NoiseSuppressor.create(audioRecord.getAudioSessionId());
+            if (ns != null) {
+                ns.setEnabled(true);
+            }
+        }
+
+        if (AcousticEchoCanceler.isAvailable()) {
+            aec = AcousticEchoCanceler.create(audioRecord.getAudioSessionId());
+            if (aec != null) {
+                aec.setEnabled(true);
+            }
+        }
+
+        if (AutomaticGainControl.isAvailable()) {
+            agc = AutomaticGainControl.create(audioRecord.getAudioSessionId());
+            if (agc != null) {
+                agc.setEnabled(true);
+            }
+        }
+
         if (rtcModule == null) {
             rtcModule = context.getNativeModule(WebRTCModule.class);
         }
         recordingThread = new Thread(Recorder::recording, "RecordingThread");
         opusEncoder = new OpusEncoder();
-        opusEncoder.init(SAMPLE_RATE, NUM_CHANNELS, OpusEncoder.OPUS_APPLICATION_AUDIO);
+        opusEncoder.init(SAMPLE_RATE, NUM_CHANNELS, OpusEncoder.OPUS_APPLICATION_VOIP);
     }
 
     public static void start() {
@@ -91,7 +102,7 @@ public class Recorder {
     private static void recording() {
         short[] inBuf = new short[FRAME_SIZE];
         byte[] encBuf = new byte[FRAME_SIZE];
-
+        int i = 0;
         while (isRecording) {
 
             int to_read = inBuf.length;
@@ -120,6 +131,7 @@ public class Recorder {
 //                    byte[] enc = speexEncoder.encode(inBuf);
                     Log.i("BrekBrek", String.valueOf(encoded));
 //                    Log.i("BrekBrek", String.format("encoded:%d", encoded));
+
                     if (encoded > 0) {
                         rtcModule.dataChannelSendAllStream(ByteBuffer.wrap(encBuf, 0, encoded));
                     }
