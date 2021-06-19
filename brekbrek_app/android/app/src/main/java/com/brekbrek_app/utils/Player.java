@@ -11,7 +11,7 @@ public class Player {
     private static AudioTrack audioTrack;
     private static Thread playingThread;
     private static final int SAMPLE_RATE = 16000; //speex: 8000;
-    private static final int FRAME_SIZE = 960; //speex: 640;
+    private static final int FRAME_SIZE = 1920; //speex: 640;
     private static OpusDecoder opusDecoder;
     //private static SpeexDecoder speexDecoder;
     private static final int NUM_CHANNELS = 1;

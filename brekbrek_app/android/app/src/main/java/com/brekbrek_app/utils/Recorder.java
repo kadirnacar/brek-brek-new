@@ -17,7 +17,7 @@ public class Recorder {
     private static AudioRecord audioRecord;
     private static Thread recordingThread;
     private static int SAMPLE_RATE = 16000;
-    private static int FRAME_SIZE = 960;
+    private static int FRAME_SIZE = 1920;
         private static OpusEncoder opusEncoder;
 //    private static SpeexEncoder speexEncoder;
     private static final int NUM_CHANNELS = 1;
